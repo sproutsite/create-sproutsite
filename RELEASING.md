@@ -1,6 +1,6 @@
 # Publishing create-sproutsite
 
-Version 0.1.0 is the first planned npm release. Preparation and dry runs do not authorize publication. Publishing, creating a remote repository, pushing and tagging each require an explicit maintainer request.
+Version 0.1.0 was first published to npm on 2026-11-17. Preparation and dry runs do not authorize publication. Publishing, creating a remote repository, pushing and tagging each require an explicit maintainer request.
 
 ## Prepare locally
 
@@ -14,7 +14,7 @@ npm publish --dry-run --access public --registry=https://registry.npmjs.org/
 
 The dry run invokes `prepublishOnly`: formatting, TypeScript checks, unit tests and the packed starter test. The starter test checks release-version consistency, archive contents, installation of published dependencies, and English/German website checks and builds at `/` and `/demo/`. Its child npm processes explicitly disable inherited dry-run mode so local test archives and installations are real. The outer publication remains a dry run. Do not use `--ignore-scripts` for this verification.
 
-Keep `package.json`, both root version entries in `package-lock.json`, `VERSION` and the dated release entry in `CHANGELOG.md` consistent. For the first release, retain 0.1.0. The Sproutsite dependency range has its own version and must stay at the range tested by the starter checks.
+Keep `package.json`, both root version entries in `package-lock.json`, `VERSION` and the dated release entry in `CHANGELOG.md` consistent. For subsequent releases, choose a new generator version; published version 0.1.0 cannot be overwritten. The Sproutsite dependency range has its own version and must stay at the range tested by the starter checks.
 
 Review the dry-run file list and package metadata. The archive should contain only `package.json`, README, CHANGELOG, LICENSE, NOTICE, THIRD_PARTY_NOTICES, the compiled CLI and the minimal templates. It must exclude source, tests, scripts, developer configuration, local secrets and installed dependencies. There are no runtime dependencies. Preserve the Apache license and notices.
 

@@ -6,7 +6,7 @@ Requires Node.js 24 or later and npm. The current starter is tested against `spr
 
 ## Create a website
 
-**This generator has not been published to npm yet.** The following command is the intended entry point after its first publication. For now, use the local archive instructions below; do not install an unverified registry package with this name.
+The generator is available on npm as [create-sproutsite](https://www.npmjs.com/package/create-sproutsite). The first published version is 0.1.0.
 
 ```sh
 npm create sproutsite@latest my-website
@@ -16,7 +16,7 @@ npm run dev
 
 The assistant asks for the directory, English or German content, website name, and whether to install dependencies. If you skip installation, run `npm install` before `npm run dev`. The generator never publishes, deploys, or initializes a Git repository automatically.
 
-To choose German and accept the other defaults after publication:
+To choose German and accept the other defaults:
 
 ```sh
 npm create sproutsite@latest meine-website -- --language de --name "Meine Website" --yes
@@ -65,7 +65,7 @@ npm run preview
 
 Deploy the entire `dist/` directory. Sproutsite generates assets, a sitemap, manifest, and static error documents; your hosting configuration must select the error documents. No deployment is performed by the generator.
 
-## Local use before publication
+## Local development and archive use
 
 In this generator repository:
 
@@ -110,7 +110,6 @@ Maintainers preparing an npm release should follow `RELEASING.md` in the source 
 - No automatic Git initialization, deployments, updates to existing websites, blog setup, multilingual website wizard, or package publication.
 - The npm executable is supplied by npm create/exec. Standalone direct execution needs npm on the system; automated execution is tested on Linux with Node 24 and npm. Other operating systems require a separate acceptance run.
 - Generated code and automated checks do not replace visual, accessibility, editorial, or production-host review.
-- The package name's availability and publication permissions must be checked before first publication.
 
 ## License
 
