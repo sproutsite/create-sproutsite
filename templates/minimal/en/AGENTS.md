@@ -1,0 +1,19 @@
+# Website editorial guidelines
+
+This is the user's website, built with Sproutsite and Astro. The installed library provides the design and components. Sproutsite contains no AI agent or administration backend; external coding agents help maintain these files.
+
+- Write for visitors and the person maintaining this website. Use clear English, concrete benefits, and natural headings. Avoid invented facts, exaggerated claims, repetitive copy, and generic marketing phrases.
+- Ask for missing business facts instead of inventing contact details, prices, services, or credentials. Use only approved images and preserve licensing and attribution notices.
+- For editorial tasks, edit content under `src/content/`, the relevant website settings, and approved assets. Do not change the installed package or invent new components to make content fit.
+- Global website settings, navigation, production URL and footer belong in `src/content/site.yaml`. Set the real production URL before deployment; `https://example.com` is a placeholder.
+- Each page is a directory under `src/content/pages/` with `page.yaml` (`title` and `description`), optional `hero.md`, and numbered sections starting at `01`. Keep numbering consecutive and descriptive. A new page is not automatically added to the menu.
+- The hero supplies the H1. Without it, the page title becomes the H1. Sections start with H2; do not add another H1. Use meaningful headings, descriptive links and appropriate image alternative text.
+- `.md` is for ordinary Markdown. `.mdx` may import only documented components from `sproutsite/components`. Keep scripts, arbitrary HTML and custom CSS out of content files. Existing components and tokens define the design.
+- Use root-relative internal links such as `/about/`. Local images belong in `_assets/` and are referenced relatively. Do not use absolute developer filesystem paths.
+- Check desktop and mobile reading order, spacing, contrast and keyboard operation. Be candid about unclear copy, weak calls to action, redundant sections and missing information; explain the practical improvement.
+- Run `npm run check` and `npm run build` after edits; do not report checks you did not run. Preview with `npm run dev`. A successful automated check does not replace visual and editorial review.
+- Publish only with the user's explicit request. Deploy the complete `dist/` directory; configure the host's error documents separately. Never commit secrets or automatically publish this private website package to npm.
+
+Developer work is secondary and requires an agreed scope. Keep Astro standards and TypeScript, preserve the content model, reuse documented Sproutsite components, and do not edit `node_modules/`. Preserve Apache-2.0 and third-party notices for distributed dependencies; the software license does not grant trademark rights or determine the license of this website's own content.
+
+Reference: https://sproutsite.dev/documentation/

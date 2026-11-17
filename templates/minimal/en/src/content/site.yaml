@@ -1,0 +1,16 @@
+name: __SITE_NAME_YAML__
+url: https://example.com
+base: /
+language: en
+locales: [en]
+hero-classes:
+    - ss-hero--theme-1
+header:
+    links:
+        - label: Home
+          href: /
+footer:
+    text: Notes, updates, and ideas from our team.
+    links:
+        - label: Home
+          href: /

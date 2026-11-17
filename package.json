@@ -1,0 +1,61 @@
+{
+    "name": "create-sproutsite",
+    "version": "0.1.0",
+    "description": "Create a Markdown-first website with Sproutsite and Astro.",
+    "type": "module",
+    "license": "Apache-2.0",
+    "author": "Björn Hempel",
+    "homepage": "https://sproutsite.dev",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/sproutsite/create-sproutsite.git"
+    },
+    "bugs": {
+        "url": "https://github.com/sproutsite/create-sproutsite/issues"
+    },
+    "keywords": [
+        "sproutsite",
+        "astro",
+        "create",
+        "starter",
+        "markdown",
+        "website"
+    ],
+    "bin": {
+        "create-sproutsite": "dist/index.js"
+    },
+    "files": [
+        "dist/",
+        "templates/",
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE",
+        "NOTICE",
+        "THIRD_PARTY_NOTICES.md"
+    ],
+    "engines": {
+        "node": ">=24.0.0"
+    },
+    "publishConfig": {
+        "access": "public",
+        "registry": "https://registry.npmjs.org/"
+    },
+    "scripts": {
+        "dev": "node --import tsx src/index.ts",
+        "build": "tsc -p tsconfig.build.json",
+        "check": "tsc --noEmit",
+        "test": "node --import tsx --test tests/*.test.ts",
+        "test:starter": "node --import tsx scripts/test-starter.ts",
+        "format": "prettier --write .",
+        "format:check": "prettier --check .",
+        "prepack": "npm run build",
+        "prepublishOnly": "npm run format:check && npm run check && npm test && npm run test:starter"
+    },
+    "devDependencies": {
+        "@types/node": "24.13.6",
+        "prettier": "3.9.10",
+        "prettier-plugin-astro": "1.1.2",
+        "tsx": "4.23.15",
+        "typescript": "6.0.3"
+    }
+}

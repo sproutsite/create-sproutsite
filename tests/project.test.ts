@@ -1,0 +1,190 @@
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import {
+    mkdtemp,
+    readFile,
+    readdir,
+    mkdir,
+    symlink,
+    writeFile,
+    rm,
+} from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { test } from 'node:test';
+import { createProject, packageName, validateName } from '../src/project.js';
+
+test('generates an English site with safe names and packaged components', async () => {
+    const parent = await mkdtemp(join(tmpdir(), 'create-sproutsite-unit-'));
+    try {
+        const target = join(parent, 'Website with spaces');
+        const name = 'Team: "North" # __PACKAGE_NAME__';
+        await createProject({ directory: target, name, language: 'en' });
+        const config = await readFile(
+            join(target, 'src/content/site.yaml'),
+            'utf8',
+        );
+        assert.equal(config.split('\n')[0], `name: ${JSON.stringify(name)}`);
+        assert.match(config, /locales: \[en\]/);
+        const manifest = JSON.parse(
+            await readFile(join(target, 'package.json'), 'utf8'),
+        ) as {
+            name: string;
+            private: boolean;
+            dependencies: Record<string, string>;
+        };
+        assert.equal(manifest.name, 'website-with-spaces');
+        assert.equal(manifest.private, true);
+        assert.equal(manifest.dependencies.sproutsite, '~0.5.8');
+        assert.ok(
+            (
+                await readFile(
+                    join(target, 'src/content/pages/02-next-steps.mdx'),
+                    'utf8',
+                )
+            ).includes("from 'sproutsite/components'"),
+        );
+        assert.ok((await readdir(target)).includes('.gitignore'));
+        assert.match(
+            await readFile(join(target, 'AGENTS.md'), 'utf8'),
+            /editorial/i,
+        );
+    } finally {
+        await rm(parent, { recursive: true, force: true });
+    }
+});
+
+test('generates German content at the root using existing locale conventions', async () => {
+    const parent = await mkdtemp(join(tmpdir(), 'create-sproutsite-unit-'));
+    try {
+        await createProject({
+            directory: parent,
+            name: 'Björns Website',
+            language: 'de',
+        });
+        assert.match(
+            await readFile(join(parent, 'src/pages/[...slug].astro'), 'utf8'),
+            /getSproutsiteStaticPaths\("de"\)/,
+        );
+        assert.equal(
+            await readFile(join(parent, 'src/content/site.yaml'), 'utf8'),
+            await readFile(join(parent, 'src/content/site.de.yaml'), 'utf8'),
+        );
+        assert.match(
+            await readFile(
+                join(parent, 'src/content/pages/hero.de.md'),
+                'utf8',
+            ),
+            /Ein Platz für deine Ideen/,
+        );
+        assert.match(
+            await readFile(join(parent, 'AGENTS.md'), 'utf8'),
+            /Redaktionelle Regeln/,
+        );
+    } finally {
+        await rm(parent, { recursive: true, force: true });
+    }
+});
+
+test('refuses occupied directories, files and symlinks without modifying them', async () => {
+    const parent = await mkdtemp(join(tmpdir(), 'create-sproutsite-unit-'));
+    try {
+        const occupied = join(parent, 'occupied');
+        await mkdir(occupied);
+        await writeFile(join(occupied, '.keep'), 'original');
+        await assert.rejects(
+            createProject({
+                directory: occupied,
+                name: 'Website',
+                language: 'en',
+            }),
+            /not empty/,
+        );
+        assert.deepEqual(await readdir(occupied), ['.keep']);
+        assert.equal(
+            await readFile(join(occupied, '.keep'), 'utf8'),
+            'original',
+        );
+        const file = join(parent, 'file');
+        await writeFile(file, 'unchanged');
+        await assert.rejects(
+            createProject({ directory: file, name: 'Website', language: 'en' }),
+            /not a file or symlink/,
+        );
+        const empty = join(parent, 'empty');
+        await mkdir(empty);
+        const link = join(parent, 'link');
+        await symlink(empty, link, 'dir');
+        await assert.rejects(
+            createProject({ directory: link, name: 'Website', language: 'en' }),
+            /symlink/,
+        );
+        assert.deepEqual(await readdir(empty), []);
+    } finally {
+        await rm(parent, { recursive: true, force: true });
+    }
+});
+
+test('invalid input fails before writing and package names stay safe', () => {
+    assert.throws(() => validateName(' \n '));
+    assert.throws(() => validateName('bad\nname'));
+    assert.throws(() => validateName('x'.repeat(121)));
+    assert.equal(packageName('/tmp/你好'), 'my-website');
+    assert.equal(packageName('/tmp/-- Test $(echo) --'), 'test-echo');
+});
+
+test('installation failure preserves generated files and explains retry', async () => {
+    const parent = await mkdtemp(join(tmpdir(), 'create-sproutsite-unit-'));
+    try {
+        const installer = join(parent, 'failing-npm.ts');
+        await writeFile(installer, 'process.exit(7);\n');
+        const target = join(parent, 'website');
+        const result = spawnSync(
+            process.execPath,
+            [
+                '--import',
+                'tsx',
+                'src/index.ts',
+                target,
+                '--name',
+                'Website',
+                '--language',
+                'en',
+                '--yes',
+                '--install',
+            ],
+            {
+                encoding: 'utf8',
+                stdio: ['ignore', 'pipe', 'pipe'],
+                env: { ...process.env, npm_execpath: installer },
+            },
+        );
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, /npm install failed \(7\)/);
+        assert.match(result.stderr, /files were kept/);
+        assert.match(
+            await readFile(join(target, 'src/content/pages/hero.md'), 'utf8'),
+            /A place for your ideas/,
+        );
+    } finally {
+        await rm(parent, { recursive: true, force: true });
+    }
+});
+
+test('CLI requires unattended consent, rejects invalid flags, and supports help', () => {
+    const run = (args: string[]) =>
+        spawnSync(
+            process.execPath,
+            ['--import', 'tsx', 'src/index.ts', ...args],
+            { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+        );
+    assert.equal(run(['--help']).status, 0);
+    assert.match(run([]).stderr, /Non-interactive mode/);
+    assert.match(
+        run(['--yes', '--language', 'fr', '--no-install']).stderr,
+        /en or de/,
+    );
+    assert.match(run(['--yes', '--install', '--no-install']).stderr, /either/);
+    assert.notEqual(run(['--force']).status, 0);
+    assert.match(run(['--version']).stdout, /^0\.1\.0\s*$/);
+});

@@ -1,0 +1,20 @@
+# Redaktionelle Regeln für diese Website
+
+Dies ist die eigene Website des Nutzers auf Basis von Sproutsite und Astro. Die installierte Bibliothek liefert Design und Komponenten. Sproutsite enthält keinen KI-Agenten und kein Administrationsbackend; externe Coding-Agenten unterstützen bei der Pflege der Dateien.
+
+- Schreibe aus Sicht der Besucher und der Person, die diese Website pflegt. Verwende klares Deutsch, konkrete Aussagen und natürliche Überschriften. Keine erfundenen Fakten, übertriebenen Versprechen, Textwiederholungen oder austauschbaren Werbephrasen.
+- Frage nach fehlenden Angaben zum Unternehmen, statt Kontaktadressen, Preise, Leistungen oder Qualifikationen zu erfinden. Verwende nur freigegebene Bilder und erhalte Lizenz- und Urheberhinweise.
+- Bearbeite bei redaktionellen Aufgaben Inhalte unter `src/content/`, passende Website-Einstellungen und freigegebene Assets. Verändere nicht das installierte Paket und erfinde keine neuen Komponenten, um Inhalte passend zu machen.
+- Allgemeine Einstellungen, Navigation, Produktionsadresse und Footer stehen in `src/content/site.yaml` und `src/content/site.de.yaml`. Halte beide Dateien für diesen einsprachigen Starter synchron. Ersetze `https://example.com` vor der Veröffentlichung durch die echte Adresse.
+- Jede Seite liegt in einem Ordner unter `src/content/pages/`. `page.yaml` definiert die Seite; `page.de.yaml` enthält die deutschen Metadaten. Halte Titel und Beschreibung dieser beiden Dateien gleich. Sichtbare Inhalte stehen in `hero.de.md` und den nummerierten `.de.md`/`.de.mdx`-Dateien. Die Dateinamen folgen dem bestehenden Sprachvertrag von Sproutsite; es gibt keine englische Website.
+- Beginne Sections bei `01` und nummeriere sie lückenlos mit aussagekräftigen Dateinamen. Eine neue Seite erscheint nicht automatisch im Menü.
+- Der Hero liefert die H1. Ohne Hero wird der Seitentitel zur H1. Sections beginnen mit H2; keine weitere H1 ergänzen. Achte auf sinnvolle Überschriften, aussagekräftige Links und passende Alternativtexte bei Bildern.
+- `.md` ist für normales Markdown. `.mdx` darf nur dokumentierte Komponenten aus `sproutsite/components` importieren. Keine Skripte, beliebiges HTML oder eigenes CSS in Inhaltsdateien. Design und Abstände liefern die vorhandenen Komponenten und Tokens.
+- Verwende interne Links relativ zur Website-Wurzel, etwa `/kontakt/`. Lokale Bilder liegen in `_assets/` und werden relativ referenziert. Keine absoluten Entwicklerpfade verwenden.
+- Prüfe Lesereihenfolge, Abstände, Kontraste und Tastaturbedienung auf Desktop und Mobilgeräten. Benenne unklare Texte, schwache Handlungsaufforderungen, Wiederholungen und fehlende Informationen ehrlich und erkläre die konkrete Verbesserung.
+- Führe nach Änderungen `npm run check` und `npm run build` aus. Behaupte keine nicht durchgeführten Prüfungen. Die Vorschau startet mit `npm run dev`. Automatische Prüfungen ersetzen keine visuelle und redaktionelle Kontrolle.
+- Veröffentliche nur mit ausdrücklichem Auftrag. Lade den kompletten `dist/`-Ordner hoch; Fehlerseiten werden zusätzlich beim Hosting eingerichtet. Keine Geheimnisse committen oder das private Website-Paket automatisch auf npm veröffentlichen.
+
+Entwicklungsarbeit ist nachrangig und benötigt einen vereinbarten Umfang. Verwende Astro-Standards und TypeScript, erhalte das Inhaltsmodell, nutze dokumentierte Sproutsite-Komponenten und bearbeite `node_modules/` nicht. Erhalte Apache-2.0- und Drittanbieterhinweise weiterverbreiteter Abhängigkeiten. Die Softwarelizenz gewährt keine Markenrechte und legt keine Lizenz für die eigenen Website-Inhalte fest.
+
+Referenz: https://sproutsite.dev/de/dokumentation/
