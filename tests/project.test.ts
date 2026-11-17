@@ -171,7 +171,7 @@ test('installation failure preserves generated files and explains retry', async 
     }
 });
 
-test('CLI requires unattended consent, rejects invalid flags, and supports help', () => {
+test('CLI requires unattended consent, rejects invalid flags, and supports help', async () => {
     const run = (args: string[]) =>
         spawnSync(
             process.execPath,
@@ -186,5 +186,8 @@ test('CLI requires unattended consent, rejects invalid flags, and supports help'
     );
     assert.match(run(['--yes', '--install', '--no-install']).stderr, /either/);
     assert.notEqual(run(['--force']).status, 0);
-    assert.match(run(['--version']).stdout, /^0\.1\.0\s*$/);
+    assert.equal(
+        run(['--version']).stdout.trim(),
+        (await readFile(new URL('../VERSION', import.meta.url), 'utf8')).trim(),
+    );
 });

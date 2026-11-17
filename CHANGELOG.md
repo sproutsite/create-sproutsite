@@ -4,6 +4,17 @@ All notable changes are documented here using Keep a Changelog and Semantic Vers
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-17
+
+### Changed
+
+- Updated the README and release guidance to reflect the successful first npm publication and use the current archive and verification examples.
+- Excluded JetBrains IDE project configuration from Git.
+
+### Fixed
+
+- Made the CLI version test compare against VERSION instead of a hard-coded release number.
+
 ## [0.1.0] - 2026-11-17
 
 ### Added
