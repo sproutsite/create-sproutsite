@@ -1,12 +1,19 @@
-# create-sproutsite
+# Sproutsite — Project Generator
+
+[![npm version](https://img.shields.io/npm/v/create-sproutsite?logo=npm)](https://www.npmjs.com/package/create-sproutsite)
+[![License](https://img.shields.io/npm/l/create-sproutsite)](LICENSE)
+[![Node.js version](https://img.shields.io/node/v/create-sproutsite?logo=nodedotjs)](https://www.npmjs.com/package/create-sproutsite)
+[![Documentation](https://img.shields.io/badge/docs-sproutsite.dev-0875C9)](https://sproutsite.dev/documentation/getting-started/)
 
 Create your own Markdown-first website with Sproutsite and Astro. The generator supplies the initial configuration, a small homepage, and editorial guidance. The installed `sproutsite` library provides the default design and components. Sproutsite contains no integrated AI agent or CMS administration interface.
 
 Requires Node.js 24 or later and npm. The current starter is tested against `sproutsite@~0.5.8`, Astro `^7.4.4`, and MDX `^8.1.2`. `.nvmrc` pins Node.js 24.22.2 for generator development.
 
+Official website: [sproutsite.dev](https://sproutsite.dev) · [Documentation](https://sproutsite.dev/documentation/getting-started/) · [Source code](https://github.com/sproutsite/create-sproutsite)
+
 ## Create a website
 
-The generator is available on npm as [create-sproutsite](https://www.npmjs.com/package/create-sproutsite). The first published version is 0.1.0.
+The generator is available on npm as [create-sproutsite](https://www.npmjs.com/package/create-sproutsite).
 
 ```sh
 npm create sproutsite@latest my-website
