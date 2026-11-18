@@ -4,6 +4,13 @@ All notable changes are documented here using Keep a Changelog and Semantic Vers
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-11-18
+
+### Changed
+
+- Updated README branding and added npm version, license, Node.js and documentation badges.
+- Added official website, getting-started documentation and source-code links, and removed the first-release-only version note.
+
 ## [0.1.1] - 2026-11-17
 
 ### Changed
