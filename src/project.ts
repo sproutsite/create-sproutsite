@@ -14,6 +14,16 @@ const templateRoot = fileURLToPath(
     new URL('../templates/minimal/', import.meta.url),
 );
 
+// Only these internal text templates contain substitution tokens. Everything
+// else, including SVGs, notices and binary artwork, is copied byte for byte.
+const tokenTemplates = new Set([
+    'common/package.json',
+    'common/src/pages/[...slug].astro',
+    'en/src/content/site.yaml',
+    'de/src/content/site.yaml',
+    'de/src/content/site.de.yaml',
+]);
+
 export function packageName(directory: string): string {
     const name = basename(resolve(directory))
         .toLowerCase()
@@ -39,6 +49,25 @@ export function validateName(name: string): string {
 
 /** A starter only: refuse links and populated targets, including dotfiles. */
 export async function assertEmptyTarget(directory: string): Promise<void> {
+    // Reject symlinks in ancestors too: creating link/new-site must never write
+    // into the linked directory, even when new-site does not yet exist.
+    let ancestor = resolve(directory);
+    while (true) {
+        try {
+            if ((await lstat(ancestor)).isSymbolicLink())
+                throw new Error(`Target path contains a symlink: ${ancestor}`);
+        } catch (error) {
+            if (!(
+                error instanceof Error &&
+                'code' in error &&
+                error.code === 'ENOENT'
+            ))
+                throw error;
+        }
+        const parent = dirname(ancestor);
+        if (parent === ancestor) break;
+        ancestor = parent;
+    }
     try {
         const entry = await lstat(directory);
         if (entry.isSymbolicLink() || !entry.isDirectory()) {
@@ -94,22 +123,32 @@ export async function createProject(options: ProjectOptions): Promise<string> {
         SITE_NAME_YAML: JSON.stringify(name),
         LOCALE_JSON: JSON.stringify(options.language),
     };
-    const output = new Map<string, string>();
+    const output = new Map<string, Buffer>();
     for (const layer of ['common', options.language]) {
         const directory = join(templateRoot, layer);
         for (const file of await templateFiles(directory)) {
             const destination = file === 'gitignore' ? '.gitignore' : file;
             if (output.has(destination))
                 throw new Error(`Duplicate template file: ${destination}`);
-            const content = await readFile(join(directory, file), 'utf8');
+            const content = await readFile(join(directory, file));
+            if (!tokenTemplates.has(`${layer}/${file.split('\\').join('/')}`)) {
+                output.set(destination, content);
+                continue;
+            }
             output.set(
                 destination,
-                content.replace(/__([A-Z_]+)__/g, (_token, key: string) => {
-                    const value = tokens[key];
-                    if (value === undefined)
-                        throw new Error(`Unknown template token: ${key}`);
-                    return value;
-                }),
+                Buffer.from(
+                    content
+                        .toString('utf8')
+                        .replace(/__([A-Z_]+)__/g, (_token, key: string) => {
+                            const value = tokens[key];
+                            if (value === undefined)
+                                throw new Error(
+                                    `Unknown template token: ${key}`,
+                                );
+                            return value;
+                        }),
+                ),
             );
         }
     }

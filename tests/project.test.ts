@@ -11,8 +11,17 @@ import {
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
 import { createProject, packageName, validateName } from '../src/project.js';
+import {
+    safePath,
+    sha256,
+    verifyAssets,
+    verifySnapshot,
+} from '../scripts/starter-assets.js';
+
+const root = new URL('../', import.meta.url);
 
 test('generates an English site with safe names and packaged components', async () => {
     const parent = await mkdtemp(join(tmpdir(), 'create-sproutsite-unit-'));
@@ -35,7 +44,7 @@ test('generates an English site with safe names and packaged components', async 
         };
         assert.equal(manifest.name, 'website-with-spaces');
         assert.equal(manifest.private, true);
-        assert.equal(manifest.dependencies.sproutsite, '~0.5.8');
+        assert.equal(manifest.dependencies.sproutsite, '~0.5.24');
         assert.ok(
             (
                 await readFile(
@@ -119,7 +128,161 @@ test('refuses occupied directories, files and symlinks without modifying them', 
             createProject({ directory: link, name: 'Website', language: 'en' }),
             /symlink/,
         );
+        await assert.rejects(
+            createProject({
+                directory: join(link, 'new-site'),
+                name: 'Website',
+                language: 'en',
+            }),
+            /symlink/,
+        );
         assert.deepEqual(await readdir(empty), []);
+    } finally {
+        await rm(parent, { recursive: true, force: true });
+    }
+});
+
+test('both locales copy the reviewed public artwork, notices and hero byte for byte', async () => {
+    const manifest = await verifySnapshot(fileURLToPath(root));
+    const parent = await mkdtemp(join(tmpdir(), 'create-sproutsite-assets-'));
+    try {
+        for (const language of ['en', 'de'] as const) {
+            const target = join(parent, language);
+            await createProject({
+                directory: target,
+                name: 'Studio: "North" # __PACKAGE_NAME__',
+                language,
+            });
+            for (const asset of manifest.files) {
+                const bytes = await readFile(
+                    join(target, 'public', asset.path),
+                );
+                assert.equal(sha256(bytes), asset.sha256, asset.path);
+            }
+            const hero = manifest.heroExample;
+            assert.equal(
+                sha256(await readFile(join(target, hero.contentDestination))),
+                manifest.files.find(
+                    (asset) => `public/${asset.path}` === hero.source,
+                )!.sha256,
+            );
+            const config = await readFile(
+                join(target, 'src/content/site.yaml'),
+                'utf8',
+            );
+            assert.equal((config.match(/^branding:/gm) ?? []).length, 1);
+            assert.ok(config.includes('showName: true'));
+            assert.ok(
+                config.includes(
+                    `alt: ${manifest.localizedSharingImageAlt[language]}`,
+                ),
+            );
+            const content = await readFile(
+                join(
+                    target,
+                    `src/content/pages/hero${language === 'de' ? '.de' : ''}.md`,
+                ),
+                'utf8',
+            );
+            assert.ok(
+                content.includes(
+                    `background-image: ${hero.frontmatter['background-image']}`,
+                ),
+            );
+            assert.ok(content.includes('classes: null'));
+        }
+    } finally {
+        await rm(parent, { recursive: true, force: true });
+    }
+});
+
+test('manifest asset paths reject traversal and absolute or ambiguous destinations', () => {
+    for (const path of [
+        '../outside',
+        '/tmp/asset',
+        'branding/../../outside',
+        'branding\\file.png',
+        './file',
+        'branding//file',
+        'C:/file',
+        'branding/',
+    ]) {
+        assert.throws(() => safePath(path), path);
+    }
+    assert.equal(safePath('branding/logo.svg'), 'branding/logo.svg');
+});
+
+test('asset verification rejects mismatched hashes and unlisted files', async () => {
+    const manifest = await verifySnapshot(fileURLToPath(root));
+    const corrupted = structuredClone(manifest);
+    corrupted.files[0]!.sha256 = '0'.repeat(64);
+    await assert.rejects(
+        verifyAssets(
+            fileURLToPath(
+                new URL('../templates/minimal/common/public/', import.meta.url),
+            ),
+            corrupted,
+        ),
+        /hash mismatch/,
+    );
+    const missing = structuredClone(manifest);
+    missing.files.pop();
+    await assert.rejects(
+        verifyAssets(
+            fileURLToPath(
+                new URL('../templates/minimal/common/public/', import.meta.url),
+            ),
+            missing,
+        ),
+        /file list differs/,
+    );
+});
+
+test('--no-install generates both complete starters without invoking npm', async () => {
+    const parent = await mkdtemp(
+        join(tmpdir(), 'create-sproutsite-no-install-'),
+    );
+    try {
+        // A missing installer would fail immediately if the CLI invoked npm.
+        for (const language of ['en', 'de']) {
+            const target = join(parent, language);
+            const result = spawnSync(
+                process.execPath,
+                [
+                    '--import',
+                    'tsx',
+                    'src/index.ts',
+                    target,
+                    '--name',
+                    'My __SITE_NAME_YAML__ studio',
+                    '--language',
+                    language,
+                    '--yes',
+                    '--no-install',
+                ],
+                {
+                    encoding: 'utf8',
+                    env: {
+                        ...process.env,
+                        npm_execpath: join(parent, 'must-not-run.ts'),
+                    },
+                },
+            );
+            assert.equal(result.status, 0, result.stderr);
+            assert.ok(
+                (
+                    await readFile(join(target, 'public/branding/favicon.ico'))
+                ).includes(0),
+            );
+            assert.equal(
+                (await readdir(target)).includes('node_modules'),
+                false,
+            );
+            assert.equal(
+                (await readdir(target)).includes('package-lock.json'),
+                false,
+            );
+        }
     } finally {
         await rm(parent, { recursive: true, force: true });
     }

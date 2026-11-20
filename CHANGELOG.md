@@ -4,6 +4,15 @@ All notable changes are documented here using Keep a Changelog and Semantic Vers
 
 ## [Unreleased]
 
+### Added
+
+- Bundled reviewed neutral branding, icons, sharing artwork and a local hero image from Sproutsite's public starter-assets contract, including unchanged license notices and SHA-256 provenance.
+- Added repeatable asset synchronization and verification, plus packed EN/DE checks for both installation modes at root and subpath deployments.
+
+### Fixed
+
+- Copy static templates and binary artwork byte for byte; restrict token substitution to the intended text templates and reject symlink ancestors in target paths.
+
 ## [0.1.2] - 2026-11-18
 
 ### Changed

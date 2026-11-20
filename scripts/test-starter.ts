@@ -1,9 +1,22 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, existsSync, rmSync } from 'node:fs';
+import {
+    mkdtempSync,
+    readFileSync,
+    existsSync,
+    rmSync,
+    mkdirSync,
+} from 'node:fs';
+import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+    readManifest,
+    sha256,
+    verifyAssets,
+    verifySnapshot,
+} from './starter-assets.js';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const npmCli = process.env.npm_execpath;
@@ -30,6 +43,24 @@ function npm(args: string[], cwd: string, capture = false, base = '/') {
     return result.stdout;
 }
 try {
+    const assetManifest = await verifySnapshot(root);
+    const fixture = process.env.SPROUTSITE_TEST_PACKAGE;
+    if (fixture) {
+        const source = JSON.parse(
+            readFileSync(
+                join(root, 'templates/minimal/asset-source.json'),
+                'utf8',
+            ),
+        ) as { archiveSha256?: string };
+        assert.equal(
+            sha256(readFileSync(resolve(fixture))),
+            source.archiveSha256,
+            'Local test archive must match the reviewed snapshot provenance. Resync when changing the source.',
+        );
+        console.log(
+            'Testing with the reviewed local Sproutsite archive. This does not verify registry availability or approve publication.',
+        );
+    }
     const metadata = JSON.parse(
         readFileSync(join(root, 'package.json'), 'utf8'),
     ) as { name: string; version: string };
@@ -83,6 +114,12 @@ try {
         'templates/minimal/en/AGENTS.md',
         'templates/minimal/de/AGENTS.md',
         'templates/minimal/common/gitignore',
+        'templates/minimal/asset-manifest.json',
+        'templates/minimal/asset-source.json',
+        ...assetManifest.files.map(
+            (asset) => `templates/minimal/common/public/${asset.path}`,
+        ),
+        `templates/minimal/common/${assetManifest.heroExample.contentDestination}`,
     ])
         assert.ok(paths.includes(file), `Missing archive file: ${file}`);
     for (const path of paths)
@@ -104,76 +141,217 @@ try {
         existsSync(tarball),
         'npm pack must create a real tarball, including under publish --dry-run.',
     );
+    const unpacked = join(directory, 'unpacked');
+    mkdirSync(unpacked);
+    const extraction = spawnSync('tar', ['-xzf', tarball, '-C', unpacked], {
+        encoding: 'utf8',
+    });
+    assert.equal(extraction.status, 0, extraction.stderr);
+    await verifySnapshot(join(unpacked, 'package'));
     for (const language of ['en', 'de']) {
-        const project = join(directory, `website ${language}`);
-        // npm exec resolves the local archive, never a registry generator with
-        // the same name; the website itself installs published Sproutsite.
-        npm(
-            [
-                'exec',
-                '--yes',
-                '--package',
-                tarball,
-                '--',
-                'create-sproutsite',
-                project,
-                '--name',
-                'Studio: "North" & Süd',
-                '--language',
-                language,
-                '--yes',
-                '--install',
-            ],
-            directory,
-        );
-        assert.ok(existsSync(join(project, 'package-lock.json')));
-        assert.ok(existsSync(join(project, '.nvmrc')));
-        assert.ok(existsSync(join(project, 'LICENSE-SPROUTSITE')));
-        assert.ok(existsSync(join(project, 'NOTICE-SPROUTSITE')));
-        npm(['run', 'check'], project);
-        for (const base of ['/', '/demo/']) {
-            npm(['run', 'build'], project, false, base);
-            const html = readFileSync(join(project, 'dist/index.html'), 'utf8');
-            assert.ok(html.includes(`lang="${language}"`));
-            assert.ok(html.includes(`href="https://example.com${base}"`));
-            assert.ok(html.includes('ss-feature'));
-            assert.ok(
-                html.includes(
-                    language === 'de'
-                        ? 'Ein Platz für deine Ideen'
-                        : 'A place for your ideas',
-                ),
+        for (const mode of ['--install', '--no-install']) {
+            const project = join(
+                directory,
+                `website ${language} ${mode.slice(2)}`,
             );
-            assert.equal((html.match(/<h1\b/g) ?? []).length, 1);
-            assert.equal((html.match(/<main\b/g) ?? []).length, 1);
-            for (const asset of html.matchAll(
-                /(?:href|src)="([^"?#]*\/_astro\/[^"?#]+)"/g,
-            )) {
-                assert.ok(asset[1]!.startsWith(base));
-                assert.ok(
-                    existsSync(
-                        join(project, 'dist', asset[1]!.slice(base.length)),
-                    ),
+            // npm exec resolves the local archive, never a registry generator with
+            // the same name; the website itself installs published Sproutsite.
+            npm(
+                [
+                    'exec',
+                    '--yes',
+                    '--package',
+                    tarball,
+                    '--',
+                    'create-sproutsite',
+                    project,
+                    '--name',
+                    'Studio: "North" & Süd __PACKAGE_NAME__',
+                    '--language',
+                    language,
+                    '--yes',
+                    mode,
+                ],
+                directory,
+            );
+            const generatedPackage = readFileSync(
+                join(project, 'package.json'),
+                'utf8',
+            );
+            if (mode === '--no-install') {
+                assert.equal(existsSync(join(project, 'node_modules')), false);
+                assert.equal(
+                    existsSync(join(project, 'package-lock.json')),
+                    false,
                 );
             }
-            for (const file of [
-                '404.html',
-                '500.html',
-                'sitemap.xml',
-                'site.webmanifest',
-            ])
-                assert.ok(existsSync(join(project, 'dist', file)));
-            assert.match(
-                readFileSync(join(project, 'dist/404.html'), 'utf8'),
-                new RegExp(`lang="${language}"`),
+            await verifyAssets(join(project, 'public'), assetManifest);
+            const hero = assetManifest.heroExample;
+            assert.equal(
+                sha256(readFileSync(join(project, hero.contentDestination))),
+                assetManifest.files.find(
+                    (asset) => `public/${asset.path}` === hero.source,
+                )!.sha256,
             );
-            assert.match(
-                readFileSync(join(project, 'dist/sitemap.xml'), 'utf8'),
-                new RegExp(`<loc>https://example.com${base}</loc>`),
+            // The real CLI's --install path uses published dependencies. Until the
+            // new API is published, overlay the reviewed archive only in this
+            // temporary website; never put local dependencies in shipped templates.
+            if (fixture || mode === '--no-install')
+                npm(
+                    [
+                        'install',
+                        '--no-audit',
+                        '--no-fund',
+                        ...(fixture
+                            ? [
+                                  '--no-save',
+                                  '--package-lock=false',
+                                  resolve(fixture),
+                              ]
+                            : []),
+                    ],
+                    project,
+                );
+            const consumerRequire = createRequire(
+                join(project, 'package.json'),
             );
-            console.log(
-                `PASS packed generator → ${language} website → ${base} build, assets, metadata, sitemap and errors.`,
+            let starterEntry: string;
+            try {
+                starterEntry = consumerRequire.resolve(
+                    'sproutsite/starter-assets',
+                );
+            } catch {
+                throw new Error(
+                    'The installed Sproutsite package lacks sproutsite/starter-assets. Use SPROUTSITE_TEST_PACKAGE for the reviewed local snapshot; do not release until a compatible published package is tested.',
+                );
+            }
+            assert.deepEqual(await readManifest(starterEntry), assetManifest);
+            await verifyAssets(
+                join(dirname(starterEntry), assetManifest.publicDirectory),
+                assetManifest,
             );
+            assert.equal(
+                readFileSync(join(project, 'package.json'), 'utf8'),
+                generatedPackage,
+            );
+            if (mode === '--install' || !fixture)
+                assert.ok(existsSync(join(project, 'package-lock.json')));
+            assert.ok(existsSync(join(project, '.nvmrc')));
+            assert.ok(existsSync(join(project, 'LICENSE-SPROUTSITE')));
+            assert.ok(existsSync(join(project, 'NOTICE-SPROUTSITE')));
+            npm(['run', 'check'], project);
+            for (const base of ['/', '/demo/']) {
+                npm(['run', 'build'], project, false, base);
+                const html = readFileSync(
+                    join(project, 'dist/index.html'),
+                    'utf8',
+                );
+                assert.ok(html.includes(`lang="${language}"`));
+                assert.ok(html.includes(`href="https://example.com${base}"`));
+                assert.ok(html.includes('ss-feature'));
+                assert.ok(html.includes(`src="${base}branding/logo.svg"`));
+                assert.ok(
+                    html.includes(`src="${base}branding/logo-light.svg"`),
+                );
+                assert.match(html, /ss-brand-logo__name[^>]*>[\s\S]*?Studio:/);
+                assert.ok(html.includes('__PACKAGE_NAME__'));
+                assert.ok(html.includes(`href="${base}branding/favicon.svg"`));
+                assert.ok(html.includes(`href="${base}branding/favicon.ico"`));
+                assert.ok(
+                    html.includes(
+                        `href="${base}branding/apple-touch-icon.png"`,
+                    ),
+                );
+                assert.ok(
+                    html.includes(
+                        `content="https://example.com${base}branding/sharing-image.png"`,
+                    ),
+                );
+                assert.ok(
+                    html.includes(
+                        assetManifest.localizedSharingImageAlt[
+                            language as 'en' | 'de'
+                        ],
+                    ),
+                );
+                assert.ok(html.includes('ss-hero--has-background-image'));
+                const heroImages = [
+                    ...html.matchAll(/\/_astro\/hero\.[^"'&)\s<]+/g),
+                ];
+                assert.ok(
+                    heroImages.length > 0,
+                    'Missing optimized local hero.',
+                );
+                for (const image of heroImages) {
+                    assert.ok(
+                        html.includes(
+                            `${base}_astro/${image[0].slice('/_astro/'.length)}`,
+                        ),
+                    );
+                    assert.ok(
+                        existsSync(join(project, 'dist', image[0].slice(1))),
+                    );
+                }
+                for (const asset of assetManifest.files)
+                    assert.equal(
+                        sha256(readFileSync(join(project, 'dist', asset.path))),
+                        asset.sha256,
+                        `Built asset changed: ${asset.path}`,
+                    );
+                const webmanifest = JSON.parse(
+                    readFileSync(
+                        join(project, 'dist/site.webmanifest'),
+                        'utf8',
+                    ),
+                ) as { icons: { src: string }[] };
+                assert.ok(
+                    webmanifest.icons.some(
+                        (icon) => icon.src === `${base}branding/icon-192.png`,
+                    ),
+                );
+                assert.ok(
+                    webmanifest.icons.some(
+                        (icon) => icon.src === `${base}branding/icon-512.png`,
+                    ),
+                );
+                assert.ok(
+                    html.includes(
+                        language === 'de'
+                            ? 'Ein Platz für deine Ideen'
+                            : 'A place for your ideas',
+                    ),
+                );
+                assert.equal((html.match(/<h1\b/g) ?? []).length, 1);
+                assert.equal((html.match(/<main\b/g) ?? []).length, 1);
+                for (const asset of html.matchAll(
+                    /(?:href|src)="([^"?#]*\/_astro\/[^"?#]+)"/g,
+                )) {
+                    assert.ok(asset[1]!.startsWith(base));
+                    assert.ok(
+                        existsSync(
+                            join(project, 'dist', asset[1]!.slice(base.length)),
+                        ),
+                    );
+                }
+                for (const file of [
+                    '404.html',
+                    '500.html',
+                    'sitemap.xml',
+                    'site.webmanifest',
+                ])
+                    assert.ok(existsSync(join(project, 'dist', file)));
+                assert.match(
+                    readFileSync(join(project, 'dist/404.html'), 'utf8'),
+                    new RegExp(`lang="${language}"`),
+                );
+                assert.match(
+                    readFileSync(join(project, 'dist/sitemap.xml'), 'utf8'),
+                    new RegExp(`<loc>https://example.com${base}</loc>`),
+                );
+                console.log(
+                    `PASS packed generator → ${language} ${mode} → ${base} build, branding, binary hashes, hero, metadata, sitemap and errors.`,
+                );
+            }
         }
     }
     rmSync(directory, { recursive: true, force: true });

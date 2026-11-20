@@ -3,3 +3,5 @@ dist/
 package-lock.json
 LICENSE
 templates/minimal/common/LICENSE-SPROUTSITE
+templates/minimal/asset-manifest.json
+templates/minimal/common/public/
