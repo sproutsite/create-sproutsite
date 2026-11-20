@@ -4,10 +4,16 @@ All notable changes are documented here using Keep a Changelog and Semantic Vers
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-11-20
+
 ### Added
 
 - Bundled reviewed neutral branding, icons, sharing artwork and a local hero image from Sproutsite's public starter-assets contract, including unchanged license notices and SHA-256 provenance.
 - Added repeatable asset synchronization and verification, plus packed EN/DE checks for both installation modes at root and subpath deployments.
+
+### Changed
+
+- Updated the generated website dependencies to Sproutsite `~0.5.24`, Astro `^7.4.12` and MDX `^8.1.6` to support the reviewed starter-assets export and compatible peers.
 
 ### Fixed
 
