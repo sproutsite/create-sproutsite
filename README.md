@@ -7,9 +7,9 @@
 
 Create your own Markdown-first website with Sproutsite and Astro. The generator supplies the initial configuration, a small homepage, and editorial guidance. The installed `sproutsite` library provides the default design and components. Sproutsite contains no integrated AI agent or CMS administration interface.
 
-Requires Node.js 24 or later and npm. The starter uses `sproutsite@~0.5.24`, its public `sproutsite/starter-assets` contract and compatible Astro `^7.4.12` and MDX `^8.1.6` peers. The reviewed asset source and hashes are recorded in `templates/minimal/asset-source.json` and `asset-manifest.json`. `.nvmrc` pins Node.js 24.22.2 for generator development.
+Requires Node.js 24 or later and npm. The starter uses `sproutsite@~0.5.25`, its public `sproutsite/starter-assets` contract and compatible Astro `^7.4.12` and MDX `^8.1.6` peers. The reviewed asset source and hashes are recorded in `templates/minimal/asset-source.json` and `asset-manifest.json`. `.nvmrc` pins Node.js 24.22.2 for generator development.
 
-The neutral asset integration in this checkout has not yet been released as a new generator version. Use the local archive instructions below to try this work; the published generator may not include it yet.
+The Sproutsite 0.5.25 configuration migration in this checkout has not yet been released as a new generator version. Use the local archive instructions below to try this work; the published generator may not include it yet.
 
 Official website: [sproutsite.dev](https://sproutsite.dev) · [Documentation](https://sproutsite.dev/documentation/getting-started/) · [Source code](https://github.com/sproutsite/create-sproutsite)
 
@@ -68,11 +68,13 @@ my-website/
 
 Edit the supplied content rather than building a theme. The starter's README and AGENTS.md explain headings, numbering, links, images, component use, preview, checks and publishing. The example MDX section uses the existing Feature component. Neutral, first-party artwork is bundled; no website contact details, AI services or external font downloads are added.
 
-The neutral logo, favicon, app icons and sharing image live in `public/branding/`. Replace those files with your own artwork, or change `branding` in `src/content/site.yaml` (both site files for German). `logo.showName: true` keeps your chosen website name beside the symbol. The sharing image alternative text is localized. Preserve `public/LICENSE.txt` and `public/NOTICE.txt` when redistributing the supplied artwork; Apache-2.0 adds no visible attribution or product-branding requirement.
+The neutral logo, favicon, app icons and sharing image live in `public/branding/`. Replace those files with your own artwork, or change `branding` in the base `src/content/site.yaml`. Use `site.de.yaml` only for intentional German overrides. `logo.showName: true` keeps your chosen website name beside the symbol. The sharing image alternative text is localized. Preserve `public/LICENSE.txt` and `public/NOTICE.txt` when redistributing the supplied artwork; Apache-2.0 adds no visible attribution or product-branding requirement.
 
-The hero uses `src/content/pages/_assets/hero.jpg`, referenced as `./_assets/hero.jpg` in its frontmatter. Replace that local image or update the relative path. A `/images/` public URL does not satisfy Astro's content-image schema. The public source copy at `public/images/hero.jpg` is preserved by the upstream copy contract; changing it alone does not change the hero. `classes: null` disables the default decorative waves while retaining the starter's hero size and text. Website owners control these copies: installing or updating Sproutsite does not overwrite them, and the generator refuses populated directories.
+The homepage hero uses `src/content/pages/_assets/hero.jpg`, referenced as `./_assets/hero.jpg` in its frontmatter and optimized by Astro. Replace that local image or update the relative path. Sproutsite 0.5.25 also supports public image paths: the global `hero.background-image` uses `/images/hero.jpg` from `public/images/hero.jpg`. Changing that public copy affects heroes that inherit the global default, not the homepage's separate local image. Omitting a page's background inherits the default; setting it to `null` disables that background. `classes: null` suppresses inherited global classes while retaining the starter's hero size and text. Website owners control these copies: installing or updating Sproutsite does not overwrite them, and the generator refuses populated directories.
 
-The German starter serves German at `/`. To follow Sproutsite's existing language contract, it uses `.de.md`/`.de.mdx`, `page.de.yaml` and `site.de.yaml`, plus base `page.yaml` and `site.yaml`. Keep each metadata/configuration pair synchronized. It does not create an English website or change the library's locale conventions.
+The German starter serves German at `/`. It retains `.de.md`/`.de.mdx`, `page.de.yaml` and `site.de.yaml`, plus base `page.yaml` and `site.yaml`. Keep the `page.yaml`/`page.de.yaml` metadata synchronized. Website configuration is different: `site.yaml` contains the complete German base, and `site.de.yaml` starts as an empty mapping (`{}`) for optional overrides. Objects inherit individual fields; lists replace inherited lists entirely. A footer text override keeps its inherited links, but a header link override must supply the whole desired list. This does not create an English website or change the locale routes.
+
+Both bases use `i18n.locale`, `i18n.defaultLocale` and `i18n.locales`; English uses `en`/`en`/`[en]` and German uses `de`/`de`/`[de]`. External-link behavior is configured with `links.external.newTab` and `links.external.icon`. Global hero defaults live under `hero.classes` and `hero.background-image`; the starter uses the supplied public `/images/hero.jpg`. The homepage retains its relative local content image and `classes: null` override. No additional SVG background is referenced. No blog settings are generated; when adding a blog, use `blog.hero.title`, `blog.hero.eyebrow`, `blog.hero.description` and `blog.articles.heading`.
 
 The initial URL is `https://example.com`. Replace it with the real production origin in the site configuration before deployment. Generated website packages are `private: true` to prevent accidental npm publication; this is independent of the generator's public package settings.
 
@@ -135,7 +137,7 @@ Maintainers preparing an npm release should follow `RELEASING.md` in the source 
 
 - A single minimal starter with either English or German, not a theme catalog or unrestricted template engine.
 - This starter contains no blog articles; blog routes and collection behavior are supplied by the installed library.
-- The current library's German file conventions require the paired metadata files explained above. Its existing localized validation limitations are not repaired by the generator.
+- The German starter retains paired page metadata and localized content filenames; language-specific site files are optional configuration overrides, not copies of the base.
 - No automatic Git initialization, deployments, updates to existing websites, blog setup, multilingual website wizard, or package publication.
 - The npm executable is supplied by npm create/exec. Standalone direct execution needs npm on the system; automated execution is tested on Linux with Node 24 and npm. Other operating systems require a separate acceptance run.
 - Generated code and automated checks do not replace visual, accessibility, editorial, or production-host review.

@@ -4,6 +4,12 @@ All notable changes are documented here using Keep a Changelog and Semantic Vers
 
 ## [Unreleased]
 
+### Changed
+
+- Updated generated websites to Sproutsite `~0.5.25` and migrated locale settings to `i18n`, external-link settings to `links.external`, and global hero settings to `hero`.
+- Kept complete English and German base configurations in `site.yaml`; the German `site.de.yaml` now contains only optional overrides. Objects inherit individual fields and lists replace inherited lists.
+- Documented the nested blog settings and global hero defaults using the bundled `/images/hero.jpg`, while preserving local hero images, existing content filenames and root routes.
+
 ## [0.1.3] - 2026-11-20
 
 ### Added

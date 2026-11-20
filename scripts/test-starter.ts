@@ -6,6 +6,7 @@ import {
     existsSync,
     rmSync,
     mkdirSync,
+    writeFileSync,
 } from 'node:fs';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
@@ -239,6 +240,24 @@ try {
             assert.ok(existsSync(join(project, '.nvmrc')));
             assert.ok(existsSync(join(project, 'LICENSE-SPROUTSITE')));
             assert.ok(existsSync(join(project, 'NOTICE-SPROUTSITE')));
+            // Exercise the public inheritance contract in one temporary site:
+            // partial objects retain sibling fields, while lists are replaced.
+            const inheritanceCase =
+                language === 'de' && mode === '--no-install';
+            if (inheritanceCase) {
+                writeFileSync(
+                    join(project, 'src/content/site.de.yaml'),
+                    'branding:\n    sharingImage:\n        alt: Lokale Vorschau\nheader:\n    links:\n        - label: Lokaler Einstieg\n          href: /\nfooter:\n    text: Lokaler Footer\n',
+                );
+                const heroFile = join(project, 'src/content/pages/hero.de.md');
+                writeFileSync(
+                    heroFile,
+                    readFileSync(heroFile, 'utf8').replace(
+                        'background-image: ./_assets/hero.jpg\nclasses: null\n',
+                        '',
+                    ),
+                );
+            }
             npm(['run', 'check'], project);
             for (const base of ['/', '/demo/']) {
                 npm(['run', 'build'], project, false, base);
@@ -269,19 +288,51 @@ try {
                 );
                 assert.ok(
                     html.includes(
-                        assetManifest.localizedSharingImageAlt[
-                            language as 'en' | 'de'
-                        ],
+                        inheritanceCase
+                            ? 'Lokale Vorschau'
+                            : assetManifest.localizedSharingImageAlt[
+                                  language as 'en' | 'de'
+                              ],
                     ),
                 );
                 assert.ok(html.includes('ss-hero--has-background-image'));
                 const heroImages = [
                     ...html.matchAll(/\/_astro\/hero\.[^"'&)\s<]+/g),
                 ];
-                assert.ok(
-                    heroImages.length > 0,
-                    'Missing optimized local hero.',
-                );
+                if (inheritanceCase) {
+                    const header = html.match(
+                        /<header\b[\s\S]*?<\/header>/,
+                    )?.[0];
+                    assert.ok(header);
+                    assert.ok(header.includes('Lokaler Einstieg'));
+                    assert.equal(
+                        header.includes('Startseite'),
+                        false,
+                        'Header link list must replace the base list.',
+                    );
+                    const footer = html.match(
+                        /<footer\b[\s\S]*?<\/footer>/,
+                    )?.[0];
+                    assert.ok(footer);
+                    assert.ok(footer.includes('Lokaler Footer'));
+                    assert.ok(
+                        footer.includes('Startseite'),
+                        'Footer links must survive a partial text override.',
+                    );
+                    assert.ok(
+                        html.includes('ss-hero--theme-1'),
+                        'Global hero classes must be inherited.',
+                    );
+                    assert.ok(
+                        html.includes(`${base}images/hero.jpg`),
+                        'Global public hero image must be inherited.',
+                    );
+                } else {
+                    assert.ok(
+                        heroImages.length > 0,
+                        'Missing optimized local hero.',
+                    );
+                }
                 for (const image of heroImages) {
                     assert.ok(
                         html.includes(

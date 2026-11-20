@@ -21,7 +21,6 @@ const tokenTemplates = new Set([
     'common/src/pages/[...slug].astro',
     'en/src/content/site.yaml',
     'de/src/content/site.yaml',
-    'de/src/content/site.de.yaml',
 ]);
 
 export function packageName(directory: string): string {

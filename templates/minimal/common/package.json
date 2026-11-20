@@ -13,7 +13,7 @@
         "preview": "astro preview"
     },
     "dependencies": {
-        "sproutsite": "~0.5.24",
+        "sproutsite": "~0.5.25",
         "astro": "^7.4.12",
         "@astrojs/mdx": "^8.1.6"
     },

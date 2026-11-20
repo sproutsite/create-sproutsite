@@ -1,8 +1,10 @@
 name: __SITE_NAME_YAML__
 url: https://example.com
 base: /
-language: en
-locales: [en]
+i18n:
+    locale: en
+    defaultLocale: en
+    locales: [en]
 branding:
     logo:
         src: /branding/logo.svg
@@ -19,8 +21,14 @@ branding:
     sharingImage:
         src: /branding/sharing-image.png
         alt: Website preview
-hero-classes:
-    - ss-hero--theme-1
+hero:
+    classes:
+        - ss-hero--theme-1
+    background-image: /images/hero.jpg
+links:
+    external:
+        newTab: true
+        icon: true
 header:
     links:
         - label: Home

@@ -29,21 +29,23 @@ tar -tzf create-sproutsite-0.1.3.tgz
 
 ## Review and update the neutral starter assets
 
-The delivery copies currently come from the published `sproutsite@0.5.24` package, maintained by `ixnode` in `sproutsite/sproutsite`. This package actually exports `sproutsite/starter-assets`; published 0.5.23 did not. Do not infer export availability from a local checkout's version number.
+The delivery copies currently come from the published `sproutsite@0.5.25` package, maintained by `ixnode` in `sproutsite/sproutsite`. This package exports `sproutsite/starter-assets`; published 0.5.23 did not. The asset manifest and artwork are unchanged from the reviewed 0.5.24 snapshot. Do not infer export availability from a local checkout's version number.
 
 The unchanged manifest in `templates/minimal/asset-manifest.json` has SHA-256 `1cf0205f5a90c4ea8cf1be1a1b49c572b1305bcd3cb31f3ba07804225214e6f4`. It lists all 14 public files and their hashes, including the complete license and notice. `templates/minimal/asset-source.json` records the source package version, package-metadata hash, manifest hash and reviewed archive hash. The same JPEG is copied to the manifest's content destination for the hero. Assets remain authored in Sproutsite; these are delivery copies.
 
 For a source refresh, inspect the candidate's owner, repository, public export and peer dependencies first:
 
 ```sh
-npm view sproutsite@0.5.24 maintainers repository exports peerDependencies dist --json --registry=https://registry.npmjs.org/
-npm pack sproutsite@0.5.24 --ignore-scripts --pack-destination /absolute/review-directory --registry=https://registry.npmjs.org/
-tar -xzf /absolute/review-directory/sproutsite-0.5.24.tgz -C /absolute/review-directory
-npm run starter-assets:sync -- /absolute/review-directory/package --archive /absolute/review-directory/sproutsite-0.5.24.tgz
-npm run starter-assets:check -- /absolute/review-directory/package --archive /absolute/review-directory/sproutsite-0.5.24.tgz
+npm view sproutsite@0.5.25 maintainers repository exports peerDependencies dist --json --registry=https://registry.npmjs.org/
+npm pack sproutsite@0.5.25 --ignore-scripts --pack-destination /absolute/review-directory --registry=https://registry.npmjs.org/
+tar -xzf /absolute/review-directory/sproutsite-0.5.25.tgz -C /absolute/review-directory
+npm run starter-assets:sync -- /absolute/review-directory/package --archive /absolute/review-directory/sproutsite-0.5.25.tgz
+npm run starter-assets:check -- /absolute/review-directory/package --archive /absolute/review-directory/sproutsite-0.5.25.tgz
 ```
 
-Use a fresh review directory. The sync resolves the public export from the supplied package, validates safe paths and every hash, then updates only the generator's delivery copies and provenance. It does not alter the supplied package or any generated website. It never replaces artwork during end-user generation. Review `branding` against the manifest, localized sharing-image alternative text, both German site configurations and hero frontmatter. Keep the website dependency range and Astro/MDX peers compatible. Never put local package paths into shipped templates. Preserve all asset bytes, including SVGs and license text; formatting excludes the copied public directory and manifest.
+Use a fresh review directory. The sync resolves the public export from the supplied package, validates safe paths and every hash, then updates only the generator's delivery copies and provenance. It does not alter the supplied package or any generated website. It never replaces artwork during end-user generation. Review `branding` against the manifest, localized sharing-image alternative text, the complete German base configuration, optional German overrides and hero frontmatter. Keep the website dependency range and Astro/MDX peers compatible. Never put local package paths into shipped templates. Preserve all asset bytes, including SVGs and license text; formatting excludes the copied public directory and manifest.
+
+The generated configuration targets Sproutsite 0.5.25: use `i18n.locale`, `i18n.defaultLocale`, `i18n.locales`, `links.external.newTab`, `links.external.icon`, `hero.classes` and `hero.background-image`. Keep the full base in `site.yaml`; `site.de.yaml` starts as `{}` and contains only deliberate overrides. Objects inherit individual fields, while arrays replace the entire inherited list. Preserve the German root route and existing localized content/page metadata filenames. No blog configuration is emitted; future blog settings must use `blog.hero` with title, eyebrow and description plus `blog.articles.heading`. The global hero uses the supplied `/images/hero.jpg`; do not reference an additional SVG background absent from the asset manifest. The packed test also exercises partial-object inheritance, header-list replacement and the global hero fallback in a temporary German website.
 
 Run `npm run starter-assets:check` and `npm run prepublishOnly` before releasing. The packed-archive test checks the copied public files and hero hashes after extraction, tests EN/DE with both installation flags, and builds all four websites at `/` and `/demo/`. It checks logos, favicon, app icons, absolute sharing URLs, the optimized hero and unchanged static files. `--no-install` must supply every asset without a source package, network artwork fetch or website installation.
 

@@ -34,7 +34,23 @@ test('generates an English site with safe names and packaged components', async 
             'utf8',
         );
         assert.equal(config.split('\n')[0], `name: ${JSON.stringify(name)}`);
-        assert.match(config, /locales: \[en\]/);
+        assert.match(
+            config,
+            /i18n:\n    locale: en\n    defaultLocale: en\n    locales: \[en\]/,
+        );
+        assert.doesNotMatch(config, /^(?:language|locales|hero-classes):/m);
+        assert.match(
+            config,
+            /hero:\n    classes:\n        - ss-hero--theme-1\n    background-image: \/images\/hero\.jpg/,
+        );
+        assert.match(
+            config,
+            /links:\n    external:\n        newTab: true\n        icon: true/,
+        );
+        assert.doesNotMatch(
+            config,
+            /externalNewTab|externalIcon|hero-waves\.svg/,
+        );
         const manifest = JSON.parse(
             await readFile(join(target, 'package.json'), 'utf8'),
         ) as {
@@ -44,7 +60,7 @@ test('generates an English site with safe names and packaged components', async 
         };
         assert.equal(manifest.name, 'website-with-spaces');
         assert.equal(manifest.private, true);
-        assert.equal(manifest.dependencies.sproutsite, '~0.5.24');
+        assert.equal(manifest.dependencies.sproutsite, '~0.5.25');
         assert.ok(
             (
                 await readFile(
@@ -75,9 +91,35 @@ test('generates German content at the root using existing locale conventions', a
             await readFile(join(parent, 'src/pages/[...slug].astro'), 'utf8'),
             /getSproutsiteStaticPaths\("de"\)/,
         );
+        const base = await readFile(
+            join(parent, 'src/content/site.yaml'),
+            'utf8',
+        );
+        assert.match(
+            base,
+            /i18n:\n    locale: de\n    defaultLocale: de\n    locales: \[de\]/,
+        );
+        assert.ok(base.includes('name: "Björns Website"'));
+        assert.match(base, /header:\n    links:\n        - label: Startseite/);
+        assert.doesNotMatch(base, /^(?:language|locales|hero-classes):/m);
+        const override = await readFile(
+            join(parent, 'src/content/site.de.yaml'),
+            'utf8',
+        );
         assert.equal(
-            await readFile(join(parent, 'src/content/site.yaml'), 'utf8'),
-            await readFile(join(parent, 'src/content/site.de.yaml'), 'utf8'),
+            override
+                .split('\n')
+                .filter((line) => !line.startsWith('#'))
+                .join('\n')
+                .trim(),
+            '{}',
+        );
+        assert.equal(
+            await readFile(join(parent, 'src/content/pages/page.yaml'), 'utf8'),
+            await readFile(
+                join(parent, 'src/content/pages/page.de.yaml'),
+                'utf8',
+            ),
         );
         assert.match(
             await readFile(
