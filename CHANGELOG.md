@@ -4,6 +4,8 @@ All notable changes are documented here using Keep a Changelog and Semantic Vers
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-11-21
+
 ### Changed
 
 - Updated generated websites to Sproutsite `~0.5.25` and migrated locale settings to `i18n`, external-link settings to `links.external`, and global hero settings to `hero`.
