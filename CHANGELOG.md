@@ -4,6 +4,10 @@ All notable changes are documented here using Keep a Changelog and Semantic Vers
 
 ## [Unreleased]
 
+### Added
+
+- Generate a local theme that extends Sproutsite's default theme and selects the starter's Header and Footer. Use Sproutsite `~0.5.29` and keep the existing appearance, site CSS and neutral assets.
+
 ## [0.1.6] - 2026-11-21
 
 ### Added

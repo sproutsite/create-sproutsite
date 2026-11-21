@@ -1,12 +1,7 @@
 import { defineConfig } from 'astro/config';
 import { createSproutsiteConfig } from 'sproutsite/config';
+import theme from './src/themes/website/theme';
 
 export default defineConfig(
-    createSproutsiteConfig({
-        styles: ['./src/styles/custom.css'],
-        components: {
-            Header: './src/components/Header.astro',
-            Footer: './src/components/Footer.astro',
-        },
-    }),
+    createSproutsiteConfig({ theme, styles: ['./src/styles/custom.css'] }),
 );

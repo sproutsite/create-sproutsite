@@ -391,10 +391,23 @@ try {
                     'site.webmanifest',
                 ])
                     assert.ok(existsSync(join(project, 'dist', file)));
-                assert.match(
-                    readFileSync(join(project, 'dist/404.html'), 'utf8'),
-                    new RegExp(`lang="${language}"`),
-                );
+                for (const route of [
+                    'blog/index.html',
+                    '404.html',
+                    '500.html',
+                ]) {
+                    const routeHtml = readFileSync(
+                        join(project, 'dist', route),
+                        'utf8',
+                    );
+                    assert.ok(routeHtml.includes(`lang="${language}"`), route);
+                }
+                for (const component of ['ss-header', 'ss-footer']) {
+                    assert.match(
+                        html,
+                        new RegExp(`class="[^"]*\\b${component}\\b`),
+                    );
+                }
                 assert.match(
                     readFileSync(join(project, 'dist/sitemap.xml'), 'utf8'),
                     new RegExp(`<loc>https://example.com${base}</loc>`),

@@ -1,8 +1,8 @@
 ---
-import { DefaultFooter } from 'sproutsite/components';
-import type { FooterProps } from 'sproutsite';
+import { Footer as DefaultFooter } from 'sproutsite/default-components';
+import type { ThemeProps } from 'sproutsite/themes';
 
-type Props = FooterProps;
+type Props = ThemeProps<'Footer'>;
 ---
 
 <DefaultFooter {...Astro.props} />
