@@ -7,9 +7,9 @@
 
 Create your own Markdown-first website with Sproutsite and Astro. The generator supplies the initial configuration, a small homepage, and editorial guidance. The installed `sproutsite` library provides the default design and components. Sproutsite contains no integrated AI agent or CMS administration interface.
 
-Requires Node.js 24 or later and npm. The starter uses `sproutsite@~0.5.27`, its public `sproutsite/starter-assets` contract and compatible Astro `^7.4.12` and MDX `^8.1.6` peers. The reviewed asset source and hashes are recorded in `templates/minimal/asset-source.json` and `asset-manifest.json`. `.nvmrc` pins Node.js 24.22.2 for generator development.
+Requires Node.js 24 or later and npm. The starter uses `sproutsite@~0.5.28`, its public `sproutsite/starter-assets` contract and compatible Astro `^7.4.12` and MDX `^8.1.6` peers. The reviewed asset source and hashes are recorded in `templates/minimal/asset-source.json` and `asset-manifest.json`. `.nvmrc` pins Node.js 24.22.2 for generator development.
 
-Use the local archive instructions below to try the CSS starter from this checkout.
+Use the local archive instructions below to try the starter with local header and footer components from this checkout.
 
 Official website: [sproutsite.dev](https://sproutsite.dev) · [Documentation](https://sproutsite.dev/documentation/getting-started/) · [Source code](https://github.com/sproutsite/create-sproutsite)
 
@@ -54,6 +54,9 @@ my-website/
 │   ├── branding/
 │   └── images/hero.jpg
 └── src/
+    ├── components/
+    │   ├── Header.astro
+    │   └── Footer.astro
     ├── styles/custom.css
     ├── content.config.ts
     ├── pages/[...slug].astro
@@ -92,6 +95,14 @@ Deploy the entire `dist/` directory. Sproutsite generates assets, a sitemap, man
 Edit `src/styles/custom.css` in the generated website. The Card example is commented out, so the starter uses the default appearance until you add a rule. Sproutsite loads the complete default theme first, then the CSS files listed in `createSproutsiteConfig({ styles: [...] })` in `astro.config.ts`, in list order. The CSS cascade and specificity still apply. Rules inside `@layer components` can lose to DaisyUI styles or utility rules in higher layers.
 
 Use `src/content/site.yaml` for color and typography settings. Your CSS files belong to your website and survive package updates. Edits to registered files update the normal development preview. Restart the dev server after changing the list in `astro.config.ts`. Missing or invalid CSS paths cause an error. This entry supports CSS customization of the default theme.
+
+## Customize the header and footer
+
+Edit `src/components/Header.astro` and `src/components/Footer.astro` to replace the site's header or footer. Both initially delegate to `DefaultHeader` and `DefaultFooter` from `sproutsite/components` to keep the supplied layout and navigation. Use these public imports when delegating. The internal `#sproutsite/` aliases are reserved for Sproutsite.
+
+`HeaderProps` and `FooterProps` come from `sproutsite`. Each supplies the resolved `site` configuration and the content `route` without the language prefix or deployment base. Configure replacements under `components` in `astro.config.ts`. Removing either entry restores that slot's default independently. Landing pages omit the header.
+
+The entry points cover the header and footer. Use `styles` for CSS changes and the documented MDX components in content. If you write your own markup, check mobile navigation, keyboard access and focus behavior.
 
 ## Local development and archive use
 

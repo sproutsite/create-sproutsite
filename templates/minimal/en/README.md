@@ -21,6 +21,14 @@ To add a page, create a directory containing `page.yaml`, an optional hero and n
 
 Keep `i18n.locale` and `i18n.defaultLocale` set to `en`, with `i18n.locales: [en]`, for this English starter at `/`. External-link settings are `links.external.newTab` and `links.external.icon`. Global hero defaults use `hero.classes` and `hero.background-image`; the bundled `/images/hero.jpg` is the global background, while the homepage uses its relative local image and `classes: null`. No additional SVG background is supplied. No blog configuration is generated; if you add one, use `blog.hero.title`, `blog.hero.eyebrow`, `blog.hero.description` and `blog.articles.heading`.
 
+## Customize the header and footer
+
+Edit `src/components/Header.astro` and `src/components/Footer.astro` to replace the site's header or footer. Both initially delegate to `DefaultHeader` and `DefaultFooter` from `sproutsite/components` to keep the supplied layout and navigation. Use these public imports when delegating. The internal `#sproutsite/` aliases are reserved for Sproutsite.
+
+`HeaderProps` and `FooterProps` come from `sproutsite`. Each supplies the resolved `site` configuration and the content `route` without the language prefix or deployment base. Configure replacements under `components` in `astro.config.ts`. Removing either entry restores that slot's default independently. Landing pages omit the header.
+
+The entry points cover the header and footer. Use `styles` for CSS changes and the documented MDX components in content. If you write your own markup, check mobile navigation, keyboard access and focus behavior.
+
 ## Customize the design
 
 Edit `src/styles/custom.css` to adjust the default theme. The commented Card example leaves the initial appearance intact. Sproutsite loads the default theme first, then the files in the order listed under `styles` in `astro.config.ts`. The cascade and specificity still apply, and rules in `@layer components` can lose to higher DaisyUI or utility layers. Keep colors and typography in `src/content/site.yaml`. Your CSS files survive Sproutsite package updates. Edits to registered CSS files update the development preview. Restart the dev server after changing the file list. Missing or invalid CSS paths cause an error.

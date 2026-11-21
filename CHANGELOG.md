@@ -4,6 +4,10 @@ All notable changes are documented here using Keep a Changelog and Semantic Vers
 
 ## [Unreleased]
 
+### Added
+
+- Generate typed local Header and Footer components using Sproutsite `~0.5.28`. Register them independently in Astro and delegate to the default components to preserve the starter layout and navigation.
+
 ## [0.1.5] - 2026-11-21
 
 ### Added
