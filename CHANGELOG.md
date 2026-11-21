@@ -4,6 +4,12 @@ All notable changes are documented here using Keep a Changelog and Semantic Vers
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-11-21
+
+### Changed
+
+- Set American English (en-US) as the default spelling convention for English content in the project and both starter guides.
+
 ## [0.1.7] - 2026-11-21
 
 ### Added
