@@ -19,6 +19,8 @@ If dependencies were installed by the generator, skip `npm install`.
 
 To add a page, create a directory containing `page.yaml`, an optional hero and numbered sections. Add a navigation link in `site.yaml` if needed. MDX can use documented components from `sproutsite/components`.
 
+Open the generated project in Codex or Claude Code and ask the agent to create, edit, move, or remove a page. Both use the bundled `sproutsite-edit-page` skill and consult Sproutsite MCP for public documentation when working on pages. Claude Code may ask you to approve the project MCP server on first use. Project content stays local.
+
 Keep `i18n.locale` and `i18n.defaultLocale` set to `en`, with `i18n.locales: [en]`, for this English starter at `/`. External-link settings are `links.external.newTab` and `links.external.icon`. Global hero defaults use `hero.classes` and `hero.background-image`; the bundled `/images/hero.jpg` is the global background, while the homepage uses its relative local image and `classes: null`. No additional SVG background is supplied. No blog configuration is generated; if you add one, use `blog.hero.title`, `blog.hero.eyebrow`, `blog.hero.description` and `blog.articles.heading`.
 
 ## Customize the theme

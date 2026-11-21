@@ -6,6 +6,7 @@ import {
     existsSync,
     rmSync,
     mkdirSync,
+    lstatSync,
     writeFileSync,
 } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -23,6 +24,18 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const npmCli = process.env.npm_execpath;
 assert.ok(npmCli, 'Run this test with npm run test:starter.');
 const directory = mkdtempSync(join(tmpdir(), 'create-sproutsite-smoke-'));
+const codexSkill = '.agents/skills/sproutsite-edit-page/SKILL.md';
+const claudeSkill = '.claude/skills/sproutsite-edit-page/SKILL.md';
+const skillMetadata = '.agents/skills/sproutsite-edit-page/agents/openai.yaml';
+const agentFiles = [
+    codexSkill,
+    claudeSkill,
+    skillMetadata,
+    '.codex/config.toml',
+    '.mcp.json',
+    'CLAUDE.md',
+];
+const sproutsiteMcpUrl = 'https://mcp.sproutsite.dev/mcp';
 function npm(args: string[], cwd: string, capture = false, base = '/') {
     const result = spawnSync(process.execPath, [npmCli!, ...args], {
         cwd,
@@ -115,6 +128,7 @@ try {
         'templates/minimal/en/AGENTS.md',
         'templates/minimal/de/AGENTS.md',
         'templates/minimal/common/gitignore',
+        ...agentFiles.map((file) => `templates/minimal/common/${file}`),
         'templates/minimal/asset-manifest.json',
         'templates/minimal/asset-source.json',
         ...assetManifest.files.map(
@@ -178,6 +192,43 @@ try {
             const generatedPackage = readFileSync(
                 join(project, 'package.json'),
                 'utf8',
+            );
+            for (const file of agentFiles) {
+                assert.ok(
+                    lstatSync(join(project, file)).isFile(),
+                    `Expected a regular file in the ${language} starter: ${file}`,
+                );
+            }
+            assert.deepEqual(
+                readFileSync(join(project, claudeSkill)),
+                readFileSync(join(project, codexSkill)),
+                'Codex and Claude Code must receive identical skill content.',
+            );
+            const codexConfig = readFileSync(
+                join(project, '.codex/config.toml'),
+                'utf8',
+            );
+            const codexUrl = codexConfig.match(
+                /^\[mcp_servers\.sproutsite\]\r?\nurl = "([^"]+)"/m,
+            )?.[1];
+            const claudeConfig = JSON.parse(
+                readFileSync(join(project, '.mcp.json'), 'utf8'),
+            ) as {
+                mcpServers: { sproutsite: { type: string; url: string } };
+            };
+            assert.equal(codexUrl, sproutsiteMcpUrl);
+            assert.deepEqual(claudeConfig.mcpServers.sproutsite, {
+                type: 'http',
+                url: codexUrl,
+            });
+            assert.ok(
+                readFileSync(join(project, skillMetadata), 'utf8').includes(
+                    sproutsiteMcpUrl,
+                ),
+            );
+            assert.equal(
+                readFileSync(join(project, 'CLAUDE.md'), 'utf8').trim(),
+                '@AGENTS.md',
             );
             if (mode === '--no-install') {
                 assert.equal(existsSync(join(project, 'node_modules')), false);

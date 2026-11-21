@@ -21,6 +21,8 @@ Die `.de`-Dateien und die ergänzenden Basis-Metadaten folgen dem Sprachvertrag 
 
 Für diesen deutschen Starter unter `/` stehen `i18n.locale` und `i18n.defaultLocale` auf `de`, `i18n.locales` auf `[de]`. Externe Links werden über `links.external.newTab` und `links.external.icon` eingestellt. Globale Hero-Vorgaben stehen unter `hero.classes` und `hero.background-image`; als Hintergrund ist das vorhandene `/images/hero.jpg` eingetragen. Die Startseite verwendet weiterhin ihr relatives lokales Inhaltsbild und `classes: null`. Ein zusätzlicher SVG-Hintergrund wird nicht mitgeliefert. Blog-Einstellungen werden nicht erzeugt; bei einer späteren Ergänzung verwende `blog.hero.title`, `blog.hero.eyebrow`, `blog.hero.description` und `blog.articles.heading`.
 
+Öffne das erzeugte Projekt in Codex oder Claude Code und bitte den Agenten, eine Seite anzulegen, zu bearbeiten, zu verschieben oder zu löschen. Beide nutzen dazu den mitgelieferten Skill `sproutsite-edit-page` und schlagen öffentliche Dokumentation beim Sproutsite-MCP nach. Claude Code kann beim ersten Zugriff um Freigabe des Projekt-MCP-Servers bitten. Projektinhalte bleiben lokal.
+
 ## Theme anpassen
 
 Der Starter wählt `src/themes/website/theme.ts` in `astro.config.ts` aus. Für reine Stiländerungen nutze `src/styles/custom.css`. Ein Theme mit `extends: defaultTheme` kann einzelne Komponenten ersetzen. Ein eigenständiges Theme ohne `extends` liefert alle dokumentierten Slots und sein eigenes CSS. Über `defaultTheme.components` kannst du einzelne mitgelieferte Komponenten ausdrücklich übernehmen.
