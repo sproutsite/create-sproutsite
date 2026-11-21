@@ -3,6 +3,7 @@
 This is the user's website, built with Sproutsite and Astro. The installed library provides the design and components. Sproutsite contains no AI agent or administration backend; external coding agents help maintain these files.
 
 - Write for visitors and the person maintaining this website. Use clear English, concrete benefits, and natural headings. Avoid invented facts, exaggerated claims, repetitive copy, and generic marketing phrases.
+- Use American English (en-US) for English-language content unless explicitly requested otherwise.
 - Ask for missing business facts instead of inventing contact details, prices, services, or credentials. Use only approved images and preserve licensing and attribution notices.
 - For editorial tasks, edit content under `src/content/`, the relevant website settings, and approved assets. Do not change the installed package or invent new components to make content fit.
 - Global website settings, navigation, production URL and footer belong in `src/content/site.yaml`. Set the real production URL before deployment; `https://example.com` is a placeholder.

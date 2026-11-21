@@ -6,6 +6,7 @@ This separate package creates ordinary Astro websites using the published Sprout
 - Keep runtime dependencies minimal. Prefer Node built-ins for argument parsing, prompts, file operations and process execution. Never interpolate user input into a shell command.
 - Keep starter files in `templates/minimal/common/`, `en/` and `de/`. Reuse Sproutsite's documented exports. Do not copy theme/components, implement new routing, or modify the dependency's content contract to suit a template.
 - Generated content, README and editorial AGENTS.md use the chosen language. Put editorial users first; technical contributor instructions are secondary. State precisely which files users edit and which pieces the library supplies.
+- Use American English (en-US) for English-language text unless explicitly requested otherwise.
 - Never overwrite populated target directories, hidden files or symlink targets. Validate user options before writing. Write new files exclusively; preserve generated files if npm installation fails and explain how to retry. Do not add an implicit destructive `--force` mode.
 - Treat website names as data: quote YAML/JSON safely and never inject them into executable code, commands or headings. Avoid global string substitution of arbitrary content; only fixed tokens in the internal templates are supported.
 - Install the real published Sproutsite package in generated websites. Version ranges must match tested peer versions. Do not use absolute local paths, workspace links, unpublished packages or an invented starter dependency in shipped templates.
