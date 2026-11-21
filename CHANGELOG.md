@@ -4,6 +4,8 @@ All notable changes are documented here using Keep a Changelog and Semantic Vers
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-11-21
+
 ### Added
 
 - Generate a website-owned stylesheet with an inactive Card example and register it through Sproutsite `~0.5.27` for CSS customization of the default theme.
