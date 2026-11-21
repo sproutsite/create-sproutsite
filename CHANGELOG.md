@@ -4,6 +4,12 @@ All notable changes are documented here using Keep a Changelog and Semantic Vers
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-11-22
+
+### Added
+
+- Bundle the Sproutsite page editing skill and MCP configuration for Codex and Claude Code in both starters.
+
 ## [0.1.8] - 2026-11-21
 
 ### Changed
