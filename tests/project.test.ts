@@ -60,7 +60,7 @@ test('generates an English site with safe names and packaged components', async 
         };
         assert.equal(manifest.name, 'website-with-spaces');
         assert.equal(manifest.private, true);
-        assert.equal(manifest.dependencies.sproutsite, '~0.5.25');
+        assert.equal(manifest.dependencies.sproutsite, '~0.5.27');
         assert.ok(
             (
                 await readFile(

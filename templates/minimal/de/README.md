@@ -21,6 +21,10 @@ Die `.de`-Dateien und die ergänzenden Basis-Metadaten folgen dem Sprachvertrag 
 
 Für diesen deutschen Starter unter `/` stehen `i18n.locale` und `i18n.defaultLocale` auf `de`, `i18n.locales` auf `[de]`. Externe Links werden über `links.external.newTab` und `links.external.icon` eingestellt. Globale Hero-Vorgaben stehen unter `hero.classes` und `hero.background-image`; als Hintergrund ist das vorhandene `/images/hero.jpg` eingetragen. Die Startseite verwendet weiterhin ihr relatives lokales Inhaltsbild und `classes: null`. Ein zusätzlicher SVG-Hintergrund wird nicht mitgeliefert. Blog-Einstellungen werden nicht erzeugt; bei einer späteren Ergänzung verwende `blog.hero.title`, `blog.hero.eyebrow`, `blog.hero.description` und `blog.articles.heading`.
 
+## Darstellung mit CSS anpassen
+
+Passe das Standard-Theme in `src/styles/custom.css` an. Das auskommentierte Card-Beispiel lässt die anfängliche Darstellung unverändert. Sproutsite lädt zuerst das Standard-Theme und danach die Dateien in der Reihenfolge unter `styles` in `astro.config.ts`. Kaskade und Spezifität gelten weiterhin. Regeln in `@layer components` können gegen höhere DaisyUI- oder Utility-Ebenen verlieren. Farben und Typografie bleiben in `src/content/site.yaml`. Deine CSS-Dateien bleiben bei Paketupdates erhalten. Änderungen an eingebundenen Dateien aktualisieren die Entwicklungsvorschau. Starte den Dev-Server nach Änderungen an der Dateiliste neu. Fehlende oder ungültige CSS-Pfade führen zu einem Fehler.
+
 ```sh
 npm run check
 npm run build

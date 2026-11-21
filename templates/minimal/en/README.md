@@ -21,6 +21,10 @@ To add a page, create a directory containing `page.yaml`, an optional hero and n
 
 Keep `i18n.locale` and `i18n.defaultLocale` set to `en`, with `i18n.locales: [en]`, for this English starter at `/`. External-link settings are `links.external.newTab` and `links.external.icon`. Global hero defaults use `hero.classes` and `hero.background-image`; the bundled `/images/hero.jpg` is the global background, while the homepage uses its relative local image and `classes: null`. No additional SVG background is supplied. No blog configuration is generated; if you add one, use `blog.hero.title`, `blog.hero.eyebrow`, `blog.hero.description` and `blog.articles.heading`.
 
+## Customize the design
+
+Edit `src/styles/custom.css` to adjust the default theme. The commented Card example leaves the initial appearance intact. Sproutsite loads the default theme first, then the files in the order listed under `styles` in `astro.config.ts`. The cascade and specificity still apply, and rules in `@layer components` can lose to higher DaisyUI or utility layers. Keep colors and typography in `src/content/site.yaml`. Your CSS files survive Sproutsite package updates. Edits to registered CSS files update the development preview. Restart the dev server after changing the file list. Missing or invalid CSS paths cause an error.
+
 ```sh
 npm run check
 npm run build
