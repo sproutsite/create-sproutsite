@@ -201,11 +201,13 @@ try {
     await verifySnapshot(join(unpacked, 'package'));
     const baselineParent = join(directory, 'baseline');
     if (baseline) mkdirSync(baselineParent);
-    for (const language of ['en', 'de']) {
+    for (const variant of ['en', 'de', 'de-en'] as const) {
+        const bilingual = variant === 'de-en';
+        const language = bilingual ? 'de' : variant;
         for (const mode of ['--install', '--no-install']) {
             const project = join(
                 directory,
-                `website ${language} ${mode.slice(2)}`,
+                `website ${variant} ${mode.slice(2)}`,
             );
             // npm exec resolves the local archive, never a registry generator with
             // the same name; the website itself installs published Sproutsite.
@@ -222,12 +224,13 @@ try {
                     'Studio: "North" & Süd __PACKAGE_NAME__',
                     '--language',
                     language,
+                    ...(bilingual ? ['--bilingual'] : []),
                     '--yes',
                     mode,
                 ],
                 directory,
             );
-            if (baseline) {
+            if (baseline && !bilingual) {
                 // Keep the target basename identical so the generated npm name
                 // and lockfile can also be compared.
                 const expected = join(
@@ -361,8 +364,7 @@ try {
             assert.ok(existsSync(join(project, 'NOTICE-SPROUTSITE')));
             // Exercise the public inheritance contract in one temporary site:
             // partial objects retain sibling fields, while lists are replaced.
-            const inheritanceCase =
-                language === 'de' && mode === '--no-install';
+            const inheritanceCase = variant === 'de' && mode === '--no-install';
             if (inheritanceCase) {
                 writeFileSync(
                     join(project, 'src/content/site.de.yaml'),
@@ -385,6 +387,40 @@ try {
                     'utf8',
                 );
                 assert.ok(html.includes(`lang="${language}"`));
+                if (bilingual) {
+                    const english = readFileSync(
+                        join(project, 'dist/en/index.html'),
+                        'utf8',
+                    );
+                    assert.match(english, /<html\b[^>]*\blang="en"/);
+                    assert.ok(english.includes('A place for your ideas'));
+                    for (const [route, locale, otherRoute, otherLocale] of [
+                        ['ueber-uns/', 'de', 'en/about/', 'en'],
+                        ['en/about/', 'en', 'ueber-uns/', 'de'],
+                    ] as const) {
+                        const page = readFileSync(
+                            join(project, 'dist', route, 'index.html'),
+                            'utf8',
+                        );
+                        assert.ok(page.includes(`lang="${locale}"`));
+                        const switchers = [
+                            ...page.matchAll(
+                                /<details\b[^>]*class="[^"]*\bss-language-switcher\b[^"]*"[^>]*>[\s\S]*?<\/details>/g,
+                            ),
+                        ];
+                        assert.ok(
+                            switchers.some(([markup]) =>
+                                markup.includes(
+                                    `href="${base}${otherRoute}" hreflang="${otherLocale}"`,
+                                ),
+                            ),
+                            `Missing language switch from ${base}${route} to ${base}${otherRoute}`,
+                        );
+                    }
+                    console.log(
+                        `PASS bilingual → ${mode} ${base}: home routes and translated language-switch links.`,
+                    );
+                }
                 assert.ok(html.includes(`href="https://example.com${base}"`));
                 assert.ok(html.includes('ss-feature'));
                 assert.ok(html.includes(`src="${base}branding/logo.svg"`));
@@ -532,7 +568,7 @@ try {
                     new RegExp(`<loc>https://example.com${base}</loc>`),
                 );
                 console.log(
-                    `PASS packed generator → ${language} ${mode} → ${base} build, branding, binary hashes, hero, metadata, sitemap and errors.`,
+                    `PASS packed generator → ${variant} ${mode} → ${base} build, branding, binary hashes, hero, metadata, sitemap and errors.`,
                 );
             }
         }

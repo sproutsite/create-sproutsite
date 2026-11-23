@@ -12,6 +12,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
+import { parseDocument } from 'yaml';
 import {
     filesUnder,
     readManifest,
@@ -20,7 +21,7 @@ import {
 } from './starter-assets.js';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const commit = 'b1a92b871dc61ab746b9bbfce054a341c8e2c624';
+const commit = '82c5c8e7ecb89570f66f8c22e541044baa8217eb';
 const prefix = 'starters/minimal/';
 const assetRoot = 'src/package/starter-assets/';
 const skill = '.agents/skills/sproutsite-edit-page/SKILL.md';
@@ -100,19 +101,51 @@ try {
     for (const path of tree.keys()) {
         if (path.startsWith(prefix)) {
             const output = path.slice(prefix.length);
-            assert.match(output, /^(common|en|de)\//);
+            assert.match(output, /^(common|en|de|de-en)\//);
             add(output, readBlob(path));
         }
         if (path.startsWith(assetRoot + 'public/')) {
             add('common/' + path.slice(assetRoot.length), readBlob(path));
         }
     }
-    for (const layer of ['common', 'en', 'de']) {
+    for (const layer of ['common', 'en', 'de', 'de-en']) {
         assert.ok(
             [...outputs.keys()].some((path) => path.startsWith(layer + '/')),
             `Missing template layer: ${layer}`,
         );
     }
+    // Apply the same two settings as the upstream preview script at import
+    // time, so the shipped CLI can keep copying files without a YAML parser.
+    const site = parseDocument(
+        readBlob(prefix + 'de/src/content/site.yaml').toString('utf8'),
+    );
+    const overrides = parseDocument(
+        readBlob(prefix + 'de-en/site-overrides.yaml').toString('utf8'),
+    );
+    assert.deepEqual(site.errors, []);
+    assert.deepEqual(overrides.errors, []);
+    for (const path of [
+        ['i18n', 'locales'],
+        ['header', 'links'],
+    ]) {
+        const value = overrides.getIn(path, true);
+        assert.ok(
+            value,
+            `Missing bilingual starter setting: ${path.join('.')}`,
+        );
+        site.setIn(path, value);
+    }
+    assert.equal(site.get('name'), '__SITE_NAME_YAML__');
+    add(
+        'de-en/project/src/content/site.yaml',
+        Buffer.from(
+            site.toString({
+                indent: 4,
+                lineWidth: 0,
+                flowCollectionPadding: false,
+            }),
+        ),
+    );
     for (const path of [
         skill,
         '.agents/skills/sproutsite-edit-page/agents/openai.yaml',

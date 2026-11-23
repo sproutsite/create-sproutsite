@@ -8,6 +8,7 @@ export interface ProjectOptions {
     directory: string;
     name: string;
     language: Language;
+    bilingual?: boolean;
 }
 
 const templateRoot = fileURLToPath(
@@ -21,6 +22,7 @@ const tokenTemplates = new Set([
     'common/src/pages/[...slug].astro',
     'en/src/content/site.yaml',
     'de/src/content/site.yaml',
+    'de-en/project/src/content/site.yaml',
 ]);
 
 export function packageName(directory: string): string {
@@ -111,6 +113,10 @@ async function templateFiles(
 export async function createProject(options: ProjectOptions): Promise<string> {
     if (options.language !== 'en' && options.language !== 'de')
         throw new Error('Language must be en or de.');
+    if (options.bilingual && options.language !== 'de')
+        throw new Error(
+            'Use --language de --bilingual for the bilingual starter.',
+        );
     const name = validateName(options.name);
     const target = resolve(options.directory);
     await assertEmptyTarget(target);
@@ -123,11 +129,24 @@ export async function createProject(options: ProjectOptions): Promise<string> {
         LOCALE_JSON: JSON.stringify(options.language),
     };
     const output = new Map<string, Buffer>();
-    for (const layer of ['common', options.language]) {
+    async function addLayer(
+        layer: string,
+        replacements: readonly string[] = [],
+        selectedDirectory?: string,
+    ): Promise<void> {
         const directory = join(templateRoot, layer);
-        for (const file of await templateFiles(directory)) {
+        const source = selectedDirectory
+            ? join(directory, selectedDirectory)
+            : directory;
+        for (const entry of await templateFiles(source)) {
+            const file = selectedDirectory
+                ? join(selectedDirectory, entry)
+                : entry;
             const destination = file === 'gitignore' ? '.gitignore' : file;
-            if (output.has(destination))
+            if (
+                output.has(destination) &&
+                !replacements.includes(destination.split('\\').join('/'))
+            )
                 throw new Error(`Duplicate template file: ${destination}`);
             const content = await readFile(join(directory, file));
             if (!tokenTemplates.has(`${layer}/${file.split('\\').join('/')}`)) {
@@ -150,6 +169,21 @@ export async function createProject(options: ProjectOptions): Promise<string> {
                 ),
             );
         }
+    }
+    await addLayer('common');
+    await addLayer(options.language);
+    if (options.bilingual) {
+        await addLayer(
+            'en',
+            ['src/content/pages/page.yaml'],
+            'src/content/pages',
+        );
+        await addLayer('de-en/project', [
+            'AGENTS.md',
+            'README.md',
+            'src/content/site.yaml',
+            'src/pages/[...slug].astro',
+        ]);
     }
     await mkdir(target, { recursive: true });
     await assertEmptyTarget(target);

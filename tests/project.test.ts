@@ -383,7 +383,15 @@ test('CLI requires unattended consent, rejects invalid flags, and supports help'
             ['--import', 'tsx', 'src/index.ts', ...args],
             { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
         );
-    assert.equal(run(['--help']).status, 0);
+    const help = run(['--help']);
+    assert.equal(help.status, 0);
+    assert.match(help.stdout, /--bilingual/);
+    for (const language of [[], ['--language', 'en']]) {
+        assert.match(
+            run(['--yes', '--no-install', '--bilingual', ...language]).stderr,
+            /Use --language de --bilingual/,
+        );
+    }
     assert.match(run([]).stderr, /Non-interactive mode/);
     assert.match(
         run(['--yes', '--language', 'fr', '--no-install']).stderr,

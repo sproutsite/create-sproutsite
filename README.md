@@ -31,6 +31,12 @@ To choose German and accept the other defaults:
 npm create sproutsite@latest meine-website -- --language de --name "Meine Website" --yes
 ```
 
+The local generator also supports `--language de --bilingual`. It creates a German homepage at `/` and an English homepage at `/en/`, with a language switcher linking `/ueber-uns/` and `/en/about/`. To try it from this checkout:
+
+```sh
+npm run dev -- meine-website --language de --bilingual --yes --no-install
+```
+
 To create files without downloading website dependencies:
 
 ```sh
@@ -139,7 +145,7 @@ npm run starter-assets:check
 npm run test:starter
 ```
 
-`test:starter` builds and packs this generator, verifies the archived asset hashes, invokes the packed executable with npm exec, and checks English/German with both `--install` and `--no-install`. Before installing the no-install websites, it checks that all assets exist without `node_modules` or a lockfile. Each of the four websites then runs Astro checks and builds at `/` and `/demo/`. Checks cover byte-exact public files and notices, the local hero, logo and website name, favicon, app manifest, absolute sharing URL, locale, homepage/Feature content, metadata, sitemap and errors. Network access or a suitable npm cache is required. Temporary files are removed on success and retained on failure. Nothing is published.
+`test:starter` builds and packs this generator, verifies the archived asset hashes, invokes the packed executable with npm exec, and checks English, German, and bilingual starters with both `--install` and `--no-install`. Before installing the no-install websites, it checks that all assets exist without `node_modules` or a lockfile. Each of the six websites then runs Astro checks and builds at `/` and `/demo/`. Checks cover byte-exact public files and notices, the local hero, logo and website name, favicon, app manifest, absolute sharing URL, locale, homepage/Feature content, metadata, sitemap and errors. Network access or a suitable npm cache is required. Temporary files are removed on success and retained on failure. Nothing is published.
 
 The starter templates are a committed snapshot from a pinned Sproutsite Git commit. Run `npm run starter:import -- --check` with the sibling Sproutsite checkout to verify it. The import gathers the source templates, neutral assets, licenses, and agent files in one step. The npm package includes the snapshot for use without a source checkout. See [RELEASING.md](RELEASING.md) for the import and archive comparison commands.
 
@@ -149,7 +155,7 @@ Maintainers preparing an npm release should follow `RELEASING.md` in the source 
 
 ## Scope and limitations
 
-- A single minimal starter with either English or German, not a theme catalog or unrestricted template engine.
+- A minimal starter in English, German, or German with English translations.
 - This starter contains no blog articles; blog routes and collection behavior are supplied by the installed library.
 - The German starter retains paired page metadata and localized content filenames; language-specific site files are optional configuration overrides, not copies of the base.
 - No automatic Git initialization, deployments, updates to existing websites, blog setup, multilingual website wizard, or package publication.

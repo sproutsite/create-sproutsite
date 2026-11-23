@@ -18,6 +18,7 @@ Usage: npm create sproutsite@latest [directory] -- [options]
 Options:
   --name <name>       Website name (default: My website / Meine Website)
   --language <en|de>  Content language (default: en)
+  --bilingual         With --language de, add English pages under /en/
   --install          Install dependencies with npm
   --no-install       Create files without installing dependencies
   --yes, -y          Use defaults without interactive questions; installs by default
@@ -83,6 +84,7 @@ async function main() {
         options: {
             name: { type: 'string' },
             language: { type: 'string' },
+            bilingual: { type: 'boolean' },
             install: { type: 'boolean' },
             'no-install': { type: 'boolean' },
             yes: { type: 'boolean', short: 'y' },
@@ -114,6 +116,10 @@ async function main() {
         values.language !== 'de'
     )
         throw new Error('Language must be en or de.');
+    if (values.bilingual && values.language !== 'de')
+        throw new Error(
+            'Use --language de --bilingual for the bilingual starter.',
+        );
     const interactive = Boolean(
         process.stdin.isTTY && process.stdout.isTTY && !values.yes,
     );
@@ -177,7 +183,12 @@ async function main() {
         questions?.close();
     }
 
-    const target = await createProject({ directory, language, name });
+    const target = await createProject({
+        directory,
+        language,
+        name,
+        bilingual: values.bilingual,
+    });
     console.log(
         language === 'de'
             ? `Website angelegt: ${target}`

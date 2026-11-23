@@ -12,7 +12,7 @@ npm ci
 npm publish --dry-run --access public --registry=https://registry.npmjs.org/
 ```
 
-The dry run invokes `prepublishOnly`: formatting, TypeScript checks, unit tests and the packed starter test. The starter test checks release-version consistency, archive contents, installation of published dependencies, and English/German website checks and builds at `/` and `/demo/`. Its child npm processes explicitly disable inherited dry-run mode so local test archives and installations are real. The outer publication remains a dry run. Do not use `--ignore-scripts` for this verification.
+The dry run invokes `prepublishOnly`: formatting, TypeScript checks, unit tests and the packed starter test. The starter test checks release-version consistency, archive contents, installation of published dependencies, and monolingual and bilingual website checks and builds at `/` and `/demo/`. Its child npm processes explicitly disable inherited dry-run mode so local test archives and installations are real. The outer publication remains a dry run. Do not use `--ignore-scripts` for this verification.
 
 Keep `package.json`, both root version entries in `package-lock.json`, `VERSION` and the dated release entry in `CHANGELOG.md` consistent. For subsequent releases, choose a new generator version; published version 0.1.0 cannot be overwritten. The Sproutsite dependency range has its own version and must stay at the range tested by the starter checks.
 
@@ -29,7 +29,9 @@ tar -tzf create-sproutsite-0.1.9.tgz
 
 ## Import and verify the starter snapshot
 
-Sproutsite owns the starter sources in `starters/minimal/`. The generator's pinned source is commit `b1a92b871dc61ab746b9bbfce054a341c8e2c624`, recorded in `scripts/import-starter.ts` and the generated `templates/minimal/asset-source.json`. The importer reads committed Git blobs, so the upstream checkout's current branch and working files do not affect the result. It preserves placeholders and reads the public asset manifest and files, the upstream license and starter notice, and the skill and agent configuration at the same commit. The Claude skill is materialized as a regular copy of the Codex skill. The preview projects in `artifacts/starter/` are generated output.
+Sproutsite owns the starter sources in `starters/minimal/`. The generator's pinned source is commit `82c5c8e7ecb89570f66f8c22e541044baa8217eb`, recorded in `scripts/import-starter.ts` and the generated `templates/minimal/asset-source.json`. The importer reads committed Git blobs, so the upstream checkout's current branch and working files do not affect the result. It preserves placeholders and reads the public asset manifest and files, the upstream license and starter notice, and the skill and agent configuration at the same commit. The Claude skill is materialized as a regular copy of the Codex skill. The preview projects in `artifacts/starter/` are generated output.
+
+The bilingual starter layers English page content and the `de-en/project` overlay over the German starter. The import applies `de-en/site-overrides.yaml` to the German base configuration and preserves its website name placeholder. This matches the order used by Sproutsite's preview script. The generator fills placeholders when it creates the website.
 
 ```sh
 npm run starter:import
@@ -40,14 +42,14 @@ These commands default to the sibling Sproutsite repository. Use `--source /abso
 
 The importer reuses the asset manifest and hash verification from `starter-assets:check`. The existing `starter-assets:sync` command is also available for reviewing a separate installed or extracted Sproutsite package. That workflow can record a reviewed archive SHA-256 and use `SPROUTSITE_TEST_PACKAGE` for an isolated fixture run. The pinned import records commit provenance for the shipped snapshot.
 
-Run `npm run prepublishOnly` before releasing. The starter test checks the packed files and builds English and German projects at `/` and `/demo/` with both installation modes. To check parity with a published generator, download its archive to a review directory outside the checkout and pass it to the test:
+Run `npm run prepublishOnly` before releasing. The starter test checks the packed files and builds English, German, and bilingual projects at `/` and `/demo/` with both installation modes. It verifies the bilingual homepage routes and translated language-switcher links. To check monolingual parity with a published generator, download its archive to a review directory outside the checkout and pass it to the test:
 
 ```sh
 npm pack create-sproutsite@0.1.9 --ignore-scripts --pack-destination /absolute/review-directory --registry=https://registry.npmjs.org/
 SPROUTSITE_STARTER_BASELINE=/absolute/review-directory/create-sproutsite-0.1.9.tgz npm run test:starter
 ```
 
-The comparison runs both archives with identical inputs for each language and installation mode. It checks generated paths and bytes, including hidden skills and MCP files, assets, and any generated lockfile. It excludes the installed `node_modules` tree. The starter test also verifies both MCP configurations, byte-exact public assets, and the localized output of the current archive.
+The comparison runs both archives with identical inputs for each monolingual starter and installation mode. It checks generated paths and bytes, including hidden skills and MCP files, assets, and any generated lockfile. It excludes the installed `node_modules` tree. The starter test also verifies both MCP configurations, byte-exact public assets, and the localized output of the current archive.
 
 ## Check npm access
 
