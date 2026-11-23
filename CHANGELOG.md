@@ -4,6 +4,13 @@ All notable changes are documented here using Keep a Changelog and Semantic Vers
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-23
+
+### Added
+
+- Generate a bilingual starter with `--language de --bilingual`. German is served at `/`, English at `/en/`, and the language switcher links the paired About pages.
+- Import starter templates, assets, licenses, and agent files from a pinned Sproutsite commit. Verify the packaged starter builds and compare monolingual output with the published 0.1.9 archive.
+
 ## [0.1.9] - 2026-11-22
 
 ### Added
