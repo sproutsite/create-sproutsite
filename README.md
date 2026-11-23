@@ -141,14 +141,7 @@ npm run test:starter
 
 `test:starter` builds and packs this generator, verifies the archived asset hashes, invokes the packed executable with npm exec, and checks English/German with both `--install` and `--no-install`. Before installing the no-install websites, it checks that all assets exist without `node_modules` or a lockfile. Each of the four websites then runs Astro checks and builds at `/` and `/demo/`. Checks cover byte-exact public files and notices, the local hero, logo and website name, favicon, app manifest, absolute sharing URL, locale, homepage/Feature content, metadata, sitemap and errors. Network access or a suitable npm cache is required. Temporary files are removed on success and retained on failure. Nothing is published.
 
-For asset maintenance, resolve the public manifest from an installed or extracted, reviewed Sproutsite package, then run:
-
-```sh
-npm run starter-assets:sync -- /absolute/path/to/sproutsite/package --archive /absolute/path/to/sproutsite.tgz
-npm run starter-assets:check -- /absolute/path/to/sproutsite/package --archive /absolute/path/to/sproutsite.tgz
-```
-
-The archive option records or checks its SHA-256; use the matching reviewed archive. This developer-only workflow validates schema, safe paths, the exact public file list and hashes before copying delivery files. It preserves the upstream manifest and license bytes. Do not edit delivery copies independently. Review branding/frontmatter against the manifest whenever updating it. Website creation never resolves the source package or downloads artwork, and has no dependency on the sibling checkout. See `RELEASING.md` for registry and local snapshot verification.
+The starter templates are a committed snapshot from a pinned Sproutsite Git commit. Run `npm run starter:import -- --check` with the sibling Sproutsite checkout to verify it. The import gathers the source templates, neutral assets, licenses, and agent files in one step. The npm package includes the snapshot for use without a source checkout. See [RELEASING.md](RELEASING.md) for the import and archive comparison commands.
 
 `npm pack` runs the TypeScript build. `npm run prepublishOnly` runs formatting, checking, unit tests and the full starter test without publishing. A publishing dry run still creates and installs real **local test archives**, while the outer publication remains a dry run. Actual `npm publish` always requires an explicit maintainer request and npm authentication.
 

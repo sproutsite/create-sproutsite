@@ -7,6 +7,7 @@ import {
     rmSync,
     mkdirSync,
     lstatSync,
+    readdirSync,
     writeFileSync,
 } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -36,6 +37,37 @@ const agentFiles = [
     'CLAUDE.md',
 ];
 const sproutsiteMcpUrl = 'https://mcp.sproutsite.dev/mcp';
+const baseline = process.env.SPROUTSITE_STARTER_BASELINE;
+
+function compareProjects(expected: string, actual: string, path = ''): void {
+    const entries = (directory: string) =>
+        readdirSync(join(directory, path))
+            .filter((name) => path || name !== 'node_modules')
+            .sort();
+    const names = entries(expected);
+    assert.deepEqual(
+        entries(actual),
+        names,
+        `File list differs at ${path || '.'}`,
+    );
+    for (const name of names) {
+        const relative = join(path, name);
+        const left = join(expected, relative);
+        const right = join(actual, relative);
+        const type = lstatSync(left);
+        if (type.isDirectory()) {
+            assert.ok(lstatSync(right).isDirectory(), relative);
+            compareProjects(expected, actual, relative);
+        } else {
+            assert.ok(type.isFile() && lstatSync(right).isFile(), relative);
+            assert.ok(
+                readFileSync(left).equals(readFileSync(right)),
+                `Generated file differs: ${relative}`,
+            );
+        }
+    }
+}
+
 function npm(args: string[], cwd: string, capture = false, base = '/') {
     const result = spawnSync(process.execPath, [npmCli!, ...args], {
         cwd,
@@ -59,6 +91,10 @@ function npm(args: string[], cwd: string, capture = false, base = '/') {
 try {
     const assetManifest = await verifySnapshot(root);
     const fixture = process.env.SPROUTSITE_TEST_PACKAGE;
+    assert.ok(
+        !(fixture && baseline),
+        'Use registry dependencies for baseline comparisons.',
+    );
     if (fixture) {
         const source = JSON.parse(
             readFileSync(
@@ -163,6 +199,8 @@ try {
     });
     assert.equal(extraction.status, 0, extraction.stderr);
     await verifySnapshot(join(unpacked, 'package'));
+    const baselineParent = join(directory, 'baseline');
+    if (baseline) mkdirSync(baselineParent);
     for (const language of ['en', 'de']) {
         for (const mode of ['--install', '--no-install']) {
             const project = join(
@@ -189,6 +227,36 @@ try {
                 ],
                 directory,
             );
+            if (baseline) {
+                // Keep the target basename identical so the generated npm name
+                // and lockfile can also be compared.
+                const expected = join(
+                    baselineParent,
+                    `website ${language} ${mode.slice(2)}`,
+                );
+                npm(
+                    [
+                        'exec',
+                        '--yes',
+                        '--package',
+                        resolve(baseline),
+                        '--',
+                        'create-sproutsite',
+                        expected,
+                        '--name',
+                        'Studio: "North" & Süd __PACKAGE_NAME__',
+                        '--language',
+                        language,
+                        '--yes',
+                        mode,
+                    ],
+                    baselineParent,
+                );
+                compareProjects(expected, project);
+                console.log(
+                    `PASS archive parity → ${language} ${mode}, including hidden files and any generated lockfile.`,
+                );
+            }
             const generatedPackage = readFileSync(
                 join(project, 'package.json'),
                 'utf8',

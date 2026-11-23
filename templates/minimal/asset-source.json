@@ -1,8 +1,8 @@
 {
     "packageName": "sproutsite",
-    "packageVersion": "0.5.25",
+    "packageVersion": "0.5.33",
     "publicExport": "sproutsite/starter-assets",
-    "packageMetadataSha256": "98a7799ed03dd4cb68c25c0f9c7b7b19106091c31faf80cdf2a7fa20426d2287",
+    "packageMetadataSha256": "02c87039a9732851f6278595755dcd9428cf476e5e6c32260bb1ebdd3b302035",
     "manifestSha256": "1cf0205f5a90c4ea8cf1be1a1b49c572b1305bcd3cb31f3ba07804225214e6f4",
-    "archiveSha256": "c5d7542759e23a057701329bff87f93bf6a4703288e5cbe1a893adac070cac24"
+    "sourceCommit": "b1a92b871dc61ab746b9bbfce054a341c8e2c624"
 }
