@@ -52,7 +52,7 @@ if (!positionals[0]) {
     );
     await verifySnapshot(root);
     console.log(
-        'Vendored starter assets, notices and hero match the recorded manifest.',
+        'Vendored public starter assets and notices match the recorded manifest.',
     );
 } else {
     const packageRoot = resolve(positionals[0]);
@@ -106,7 +106,6 @@ if (!positionals[0]) {
             ...manifest.files.map((asset) =>
                 join(minimal, 'common/public', asset.path),
             ),
-            join(minimal, 'common', manifest.heroExample.contentDestination),
             join(minimal, 'asset-manifest.json'),
             join(minimal, 'asset-source.json'),
         ];
@@ -120,16 +119,6 @@ if (!positionals[0]) {
                 target,
             );
         }
-        const hero = join(
-            minimal,
-            'common',
-            manifest.heroExample.contentDestination,
-        );
-        await mkdir(dirname(hero), { recursive: true });
-        await copyFile(
-            join(sourceDirectory, manifest.heroExample.source),
-            hero,
-        );
         await copyFile(entry, join(minimal, 'asset-manifest.json'));
         await writeFile(
             join(minimal, 'asset-source.json'),
@@ -155,6 +144,6 @@ if (!positionals[0]) {
         await verifySnapshot(root);
     }
     console.log(
-        `${values.check ? 'Verified' : 'Copied'} ${manifest.files.length} public assets and local hero from sproutsite@${metadata.version} via sproutsite/starter-assets.`,
+        `${values.check ? 'Verified' : 'Copied'} ${manifest.files.length} public assets from sproutsite@${metadata.version} via sproutsite/starter-assets.`,
     );
 }

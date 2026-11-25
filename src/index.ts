@@ -18,7 +18,7 @@ Usage: npm create sproutsite@latest [directory] -- [options]
 Options:
   --name <name>       Website name (default: My website / Meine Website)
   --language <en|de>  Content language (default: en)
-  --bilingual         With --language de, add English pages under /en/
+  --bilingual         Add the other language under /en/ or /de/
   --install          Install dependencies with npm
   --no-install       Create files without installing dependencies
   --yes, -y          Use defaults without interactive questions; installs by default
@@ -116,10 +116,6 @@ async function main() {
         values.language !== 'de'
     )
         throw new Error('Language must be en or de.');
-    if (values.bilingual && values.language !== 'de')
-        throw new Error(
-            'Use --language de --bilingual for the bilingual starter.',
-        );
     const interactive = Boolean(
         process.stdin.isTTY && process.stdout.isTTY && !values.yes,
     );

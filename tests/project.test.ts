@@ -41,7 +41,7 @@ test('generates an English site with safe names and packaged components', async 
         assert.doesNotMatch(config, /^(?:language|locales|hero-classes):/m);
         assert.match(
             config,
-            /hero:\n    classes:\n        - ss-hero--theme-1\n    background-image: \/images\/hero\.jpg/,
+            /hero:\n    classes:\n        - ss-hero--starter-waves\n    background-image: \/images\/hero\.jpg/,
         );
         assert.match(
             config,
@@ -60,7 +60,7 @@ test('generates an English site with safe names and packaged components', async 
         };
         assert.equal(manifest.name, 'website-with-spaces');
         assert.equal(manifest.private, true);
-        assert.equal(manifest.dependencies.sproutsite, '~0.5.29');
+        assert.equal(manifest.dependencies.sproutsite, '~0.5.35');
         assert.ok(
             (
                 await readFile(
@@ -184,7 +184,7 @@ test('refuses occupied directories, files and symlinks without modifying them', 
     }
 });
 
-test('both locales copy the reviewed public artwork, notices and hero byte for byte', async () => {
+test('both locales copy the reviewed public artwork, notices and backgrounds byte for byte', async () => {
     const manifest = await verifySnapshot(fileURLToPath(root));
     const parent = await mkdtemp(join(tmpdir(), 'create-sproutsite-assets-'));
     try {
@@ -201,13 +201,6 @@ test('both locales copy the reviewed public artwork, notices and hero byte for b
                 );
                 assert.equal(sha256(bytes), asset.sha256, asset.path);
             }
-            const hero = manifest.heroExample;
-            assert.equal(
-                sha256(await readFile(join(target, hero.contentDestination))),
-                manifest.files.find(
-                    (asset) => `public/${asset.path}` === hero.source,
-                )!.sha256,
-            );
             const config = await readFile(
                 join(target, 'src/content/site.yaml'),
                 'utf8',
@@ -226,12 +219,8 @@ test('both locales copy the reviewed public artwork, notices and hero byte for b
                 ),
                 'utf8',
             );
-            assert.ok(
-                content.includes(
-                    `background-image: ${hero.frontmatter['background-image']}`,
-                ),
-            );
-            assert.ok(content.includes('classes: null'));
+            assert.doesNotMatch(content, /^background-image:/m);
+            assert.match(config, /background-image: \/images\/footer\.webp/);
         }
     } finally {
         await rm(parent, { recursive: true, force: true });
@@ -386,12 +375,6 @@ test('CLI requires unattended consent, rejects invalid flags, and supports help'
     const help = run(['--help']);
     assert.equal(help.status, 0);
     assert.match(help.stdout, /--bilingual/);
-    for (const language of [[], ['--language', 'en']]) {
-        assert.match(
-            run(['--yes', '--no-install', '--bilingual', ...language]).stderr,
-            /Use --language de --bilingual/,
-        );
-    }
     assert.match(run([]).stderr, /Non-interactive mode/);
     assert.match(
         run(['--yes', '--language', 'fr', '--no-install']).stderr,

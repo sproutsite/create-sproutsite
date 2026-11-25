@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { lstat, readdir, readFile } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
 
 export interface AssetManifest {
     schemaVersion: 1;
@@ -11,7 +11,7 @@ export interface AssetManifest {
     branding: {
         logo: {
             src: string;
-            srcOnDark: string;
+            srcOnDark?: string;
             width: number;
             height: number;
             showName: true;
@@ -26,11 +26,6 @@ export interface AssetManifest {
         sharingImage: { src: string; alt: string };
     };
     localizedSharingImageAlt: { en: string; de: string };
-    heroExample: {
-        source: string;
-        contentDestination: string;
-        frontmatter: { 'background-image': string; classes: null };
-    };
 }
 
 export function sha256(data: Uint8Array): string {
@@ -90,7 +85,9 @@ export async function readManifest(file: string): Promise<AssetManifest> {
     );
     const references = [
         manifest.branding.logo.src,
-        manifest.branding.logo.srcOnDark,
+        ...(manifest.branding.logo.srcOnDark
+            ? [manifest.branding.logo.srcOnDark]
+            : []),
         manifest.branding.sharingImage.src,
         ...Object.values(manifest.branding.icons),
     ];
@@ -106,17 +103,6 @@ export async function readManifest(file: string): Promise<AssetManifest> {
             typeof manifest.localizedSharingImageAlt[language] === 'string' &&
                 manifest.localizedSharingImageAlt[language].length > 0,
         );
-    const hero = manifest.heroExample;
-    safePath(hero.source);
-    safePath(hero.contentDestination);
-    assert.ok(hero.source.startsWith('public/'));
-    assert.ok(paths.includes(hero.source.slice('public/'.length)));
-    assert.ok(hero.contentDestination.startsWith('src/content/pages/_assets/'));
-    assert.equal(
-        hero.frontmatter['background-image'],
-        `./${hero.contentDestination.slice('src/content/pages/'.length)}`,
-    );
-    assert.equal(hero.frontmatter.classes, null);
     return manifest;
 }
 
@@ -154,13 +140,5 @@ export async function verifySnapshot(root: string): Promise<AssetManifest> {
     assert.match(source.packageVersion, /^\d+\.\d+\.\d+(?:-[a-zA-Z0-9.-]+)?$/);
     assert.equal(source.manifestSha256, sha256(await readFile(manifestFile)));
     await verifyAssets(join(minimal, 'common/public'), manifest);
-    const hero = manifest.heroExample;
-    assert.equal(
-        sha256(
-            await readFile(resolve(minimal, 'common', hero.contentDestination)),
-        ),
-        manifest.files.find((asset) => `public/${asset.path}` === hero.source)!
-            .sha256,
-    );
     return manifest;
 }

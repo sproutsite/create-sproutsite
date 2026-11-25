@@ -29,9 +29,9 @@ tar -tzf create-sproutsite-0.2.0.tgz
 
 ## Import and verify the starter snapshot
 
-Sproutsite owns the starter sources in `starters/minimal/`. The generator's pinned source is commit `82c5c8e7ecb89570f66f8c22e541044baa8217eb`, recorded in `scripts/import-starter.ts` and the generated `templates/minimal/asset-source.json`. The importer reads committed Git blobs, so the upstream checkout's current branch and working files do not affect the result. It preserves placeholders and reads the public asset manifest and files, the upstream license and starter notice, and the skill and agent configuration at the same commit. The Claude skill is materialized as a regular copy of the Codex skill. The preview projects in `artifacts/starter/` are generated output.
+Sproutsite owns the starter sources in `starters/minimal/`. The generator pins Sproutsite tag `0.5.35` at commit `ce1395c73f129ffe16e0736c9127176a89a5ee36`, recorded in `scripts/import-starter.ts` and the generated `templates/minimal/asset-source.json`. The importer reads committed Git blobs, so the upstream checkout's current branch and working files do not affect the result. It preserves placeholders and reads the public asset manifest and files, the upstream license and starter notice, and the skill and agent configuration at the same commit. The Claude skill is materialized as a regular copy of the Codex skill. The preview projects in `artifacts/starter/` are generated output.
 
-The bilingual starter layers English page content and the `de-en/project` overlay over the German starter. The import applies `de-en/site-overrides.yaml` to the German base configuration and preserves its website name placeholder. This matches the order used by Sproutsite's preview script. The generator fills placeholders when it creates the website.
+Each bilingual starter adds the secondary language’s pages to the primary starter and applies the corresponding `de-en` or `en-de` project overlay and site overrides. The English-first variant also reuses the translated About files from the German-first overlay. This follows Sproutsite's preview script. The generator fills the preserved placeholders when it creates the website.
 
 ```sh
 npm run starter:import
@@ -42,7 +42,7 @@ These commands default to the sibling Sproutsite repository. Use `--source /abso
 
 The importer reuses the asset manifest and hash verification from `starter-assets:check`. The existing `starter-assets:sync` command is also available for reviewing a separate installed or extracted Sproutsite package. That workflow can record a reviewed archive SHA-256 and use `SPROUTSITE_TEST_PACKAGE` for an isolated fixture run. The pinned import records commit provenance for the shipped snapshot.
 
-Run `npm run prepublishOnly` before releasing. The starter test checks the packed files and builds English, German, and bilingual projects at `/` and `/demo/` with both installation modes. It verifies the bilingual homepage routes and translated language-switcher links. To check monolingual parity with a published generator, download its archive to a review directory outside the checkout and pass it to the test:
+Run `npm run prepublishOnly` before releasing. The starter test checks the packed files and builds all four starter variants at `/` and `/demo/` with both installation modes. It verifies the bilingual homepage routes and translated language-switcher links. For changes expected to preserve the monolingual output byte for byte, download the relevant published archive to a review directory outside the checkout and pass it to the test. The following uses the original `0.1.9` parity baseline as an example:
 
 ```sh
 npm pack create-sproutsite@0.1.9 --ignore-scripts --pack-destination /absolute/review-directory --registry=https://registry.npmjs.org/

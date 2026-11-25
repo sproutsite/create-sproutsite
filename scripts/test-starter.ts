@@ -170,7 +170,6 @@ try {
         ...assetManifest.files.map(
             (asset) => `templates/minimal/common/public/${asset.path}`,
         ),
-        `templates/minimal/common/${assetManifest.heroExample.contentDestination}`,
     ])
         assert.ok(paths.includes(file), `Missing archive file: ${file}`);
     for (const path of paths)
@@ -201,9 +200,9 @@ try {
     await verifySnapshot(join(unpacked, 'package'));
     const baselineParent = join(directory, 'baseline');
     if (baseline) mkdirSync(baselineParent);
-    for (const variant of ['en', 'de', 'de-en'] as const) {
-        const bilingual = variant === 'de-en';
-        const language = bilingual ? 'de' : variant;
+    for (const variant of ['en', 'de', 'de-en', 'en-de'] as const) {
+        const bilingual = variant === 'de-en' || variant === 'en-de';
+        const language = variant === 'de' || variant === 'de-en' ? 'de' : 'en';
         for (const mode of ['--install', '--no-install']) {
             const project = join(
                 directory,
@@ -309,13 +308,6 @@ try {
                 );
             }
             await verifyAssets(join(project, 'public'), assetManifest);
-            const hero = assetManifest.heroExample;
-            assert.equal(
-                sha256(readFileSync(join(project, hero.contentDestination))),
-                assetManifest.files.find(
-                    (asset) => `public/${asset.path}` === hero.source,
-                )!.sha256,
-            );
             // The real CLI's --install path uses published dependencies. Until the
             // new API is published, overlay the reviewed archive only in this
             // temporary website; never put local dependencies in shipped templates.
@@ -370,14 +362,6 @@ try {
                     join(project, 'src/content/site.de.yaml'),
                     'branding:\n    sharingImage:\n        alt: Lokale Vorschau\nheader:\n    links:\n        - label: Lokaler Einstieg\n          href: /\nfooter:\n    text: Lokaler Footer\n',
                 );
-                const heroFile = join(project, 'src/content/pages/hero.de.md');
-                writeFileSync(
-                    heroFile,
-                    readFileSync(heroFile, 'utf8').replace(
-                        'background-image: ./_assets/hero.jpg\nclasses: null\n',
-                        '',
-                    ),
-                );
             }
             npm(['run', 'check'], project);
             for (const base of ['/', '/demo/']) {
@@ -388,15 +372,26 @@ try {
                 );
                 assert.ok(html.includes(`lang="${language}"`));
                 if (bilingual) {
-                    const english = readFileSync(
-                        join(project, 'dist/en/index.html'),
+                    const secondary = language === 'de' ? 'en' : 'de';
+                    const translatedHome = readFileSync(
+                        join(project, 'dist', secondary, 'index.html'),
                         'utf8',
                     );
-                    assert.match(english, /<html\b[^>]*\blang="en"/);
-                    assert.ok(english.includes('A place for your ideas'));
+                    assert.ok(translatedHome.includes(`lang="${secondary}"`));
+                    assert.ok(
+                        translatedHome.includes(
+                            secondary === 'en'
+                                ? 'A place for your ideas'
+                                : 'Ein Platz für deine Ideen',
+                        ),
+                    );
+                    const germanAbout =
+                        language === 'de' ? 'ueber-uns/' : 'de/ueber-uns/';
+                    const englishAbout =
+                        language === 'en' ? 'about/' : 'en/about/';
                     for (const [route, locale, otherRoute, otherLocale] of [
-                        ['ueber-uns/', 'de', 'en/about/', 'en'],
-                        ['en/about/', 'en', 'ueber-uns/', 'de'],
+                        [germanAbout, 'de', englishAbout, 'en'],
+                        [englishAbout, 'en', germanAbout, 'de'],
                     ] as const) {
                         const page = readFileSync(
                             join(project, 'dist', route, 'index.html'),
@@ -424,9 +419,6 @@ try {
                 assert.ok(html.includes(`href="https://example.com${base}"`));
                 assert.ok(html.includes('ss-feature'));
                 assert.ok(html.includes(`src="${base}branding/logo.svg"`));
-                assert.ok(
-                    html.includes(`src="${base}branding/logo-light.svg"`),
-                );
                 assert.match(html, /ss-brand-logo__name[^>]*>[\s\S]*?Studio:/);
                 assert.ok(html.includes('__PACKAGE_NAME__'));
                 assert.ok(html.includes(`href="${base}branding/favicon.svg"`));
@@ -451,9 +443,6 @@ try {
                     ),
                 );
                 assert.ok(html.includes('ss-hero--has-background-image'));
-                const heroImages = [
-                    ...html.matchAll(/\/_astro\/hero\.[^"'&)\s<]+/g),
-                ];
                 if (inheritanceCase) {
                     const header = html.match(
                         /<header\b[\s\S]*?<\/header>/,
@@ -474,30 +463,16 @@ try {
                         footer.includes('Startseite'),
                         'Footer links must survive a partial text override.',
                     );
-                    assert.ok(
-                        html.includes('ss-hero--theme-1'),
-                        'Global hero classes must be inherited.',
-                    );
-                    assert.ok(
-                        html.includes(`${base}images/hero.jpg`),
-                        'Global public hero image must be inherited.',
-                    );
-                } else {
-                    assert.ok(
-                        heroImages.length > 0,
-                        'Missing optimized local hero.',
-                    );
                 }
-                for (const image of heroImages) {
-                    assert.ok(
-                        html.includes(
-                            `${base}_astro/${image[0].slice('/_astro/'.length)}`,
-                        ),
-                    );
-                    assert.ok(
-                        existsSync(join(project, 'dist', image[0].slice(1))),
-                    );
-                }
+                assert.match(html, /\bss-hero--starter-waves\b/);
+                assert.ok(html.includes(`src="${base}images/hero.jpg"`));
+                assert.ok(html.includes(`src="${base}images/footer.webp"`));
+                assert.equal(
+                    existsSync(
+                        join(project, 'src/content/pages/_assets/hero.jpg'),
+                    ),
+                    false,
+                );
                 for (const asset of assetManifest.files)
                     assert.equal(
                         sha256(readFileSync(join(project, 'dist', asset.path))),

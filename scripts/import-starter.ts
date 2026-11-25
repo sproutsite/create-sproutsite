@@ -13,15 +13,10 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { parseDocument } from 'yaml';
-import {
-    filesUnder,
-    readManifest,
-    sha256,
-    verifySnapshot,
-} from './starter-assets.js';
+import { filesUnder, sha256, verifySnapshot } from './starter-assets.js';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const commit = '82c5c8e7ecb89570f66f8c22e541044baa8217eb';
+const commit = 'ce1395c73f129ffe16e0736c9127176a89a5ee36';
 const prefix = 'starters/minimal/';
 const assetRoot = 'src/package/starter-assets/';
 const skill = '.agents/skills/sproutsite-edit-page/SKILL.md';
@@ -101,14 +96,26 @@ try {
     for (const path of tree.keys()) {
         if (path.startsWith(prefix)) {
             const output = path.slice(prefix.length);
-            assert.match(output, /^(common|en|de|de-en)\//);
-            add(output, readBlob(path));
+            assert.match(output, /^(common|en|de|de-en|en-de)\//);
+            const bytes = readBlob(path);
+            if (output === 'common/package.json') {
+                const starter = JSON.parse(bytes.toString('utf8')) as {
+                    dependencies: Record<string, string>;
+                };
+                starter.dependencies.sproutsite = '~0.5.35';
+                add(
+                    output,
+                    Buffer.from(JSON.stringify(starter, null, 4) + '\n'),
+                );
+            } else {
+                add(output, bytes);
+            }
         }
         if (path.startsWith(assetRoot + 'public/')) {
             add('common/' + path.slice(assetRoot.length), readBlob(path));
         }
     }
-    for (const layer of ['common', 'en', 'de', 'de-en']) {
+    for (const layer of ['common', 'en', 'de', 'de-en', 'en-de']) {
         assert.ok(
             [...outputs.keys()].some((path) => path.startsWith(layer + '/')),
             `Missing template layer: ${layer}`,
@@ -116,36 +123,42 @@ try {
     }
     // Apply the same two settings as the upstream preview script at import
     // time, so the shipped CLI can keep copying files without a YAML parser.
-    const site = parseDocument(
-        readBlob(prefix + 'de/src/content/site.yaml').toString('utf8'),
-    );
-    const overrides = parseDocument(
-        readBlob(prefix + 'de-en/site-overrides.yaml').toString('utf8'),
-    );
-    assert.deepEqual(site.errors, []);
-    assert.deepEqual(overrides.errors, []);
-    for (const path of [
-        ['i18n', 'locales'],
-        ['header', 'links'],
-    ]) {
-        const value = overrides.getIn(path, true);
-        assert.ok(
-            value,
-            `Missing bilingual starter setting: ${path.join('.')}`,
+    for (const variant of ['de-en', 'en-de']) {
+        const site = parseDocument(
+            readBlob(
+                prefix + variant.slice(0, 2) + '/src/content/site.yaml',
+            ).toString('utf8'),
         );
-        site.setIn(path, value);
+        const overrides = parseDocument(
+            readBlob(prefix + variant + '/site-overrides.yaml').toString(
+                'utf8',
+            ),
+        );
+        assert.deepEqual(site.errors, []);
+        assert.deepEqual(overrides.errors, []);
+        for (const path of [
+            ['i18n', 'locales'],
+            ['header', 'links'],
+        ]) {
+            const value = overrides.getIn(path, true);
+            assert.ok(
+                value,
+                `Missing bilingual starter setting: ${path.join('.')}`,
+            );
+            site.setIn(path, value);
+        }
+        assert.equal(site.get('name'), '__SITE_NAME_YAML__');
+        add(
+            variant + '/project/src/content/site.yaml',
+            Buffer.from(
+                site.toString({
+                    indent: 4,
+                    lineWidth: 0,
+                    flowCollectionPadding: false,
+                }),
+            ),
+        );
     }
-    assert.equal(site.get('name'), '__SITE_NAME_YAML__');
-    add(
-        'de-en/project/src/content/site.yaml',
-        Buffer.from(
-            site.toString({
-                indent: 4,
-                lineWidth: 0,
-                flowCollectionPadding: false,
-            }),
-        ),
-    );
     for (const path of [
         skill,
         '.agents/skills/sproutsite-edit-page/agents/openai.yaml',
@@ -160,14 +173,6 @@ try {
     add('common/LICENSE-SPROUTSITE', readBlob('LICENSE'));
 
     const manifestBytes = readBlob(assetRoot + 'manifest.json');
-    const manifestFile = join(staged, 'asset-manifest.json');
-    await mkdir(staged, { recursive: true });
-    await writeFile(manifestFile, manifestBytes);
-    const manifest = await readManifest(manifestFile);
-    add(
-        `common/${manifest.heroExample.contentDestination}`,
-        readBlob(assetRoot + manifest.heroExample.source),
-    );
     const metadataBytes = readBlob('package.json');
     const metadata = JSON.parse(metadataBytes.toString('utf8')) as {
         name: string;

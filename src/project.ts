@@ -23,6 +23,7 @@ const tokenTemplates = new Set([
     'en/src/content/site.yaml',
     'de/src/content/site.yaml',
     'de-en/project/src/content/site.yaml',
+    'en-de/project/src/content/site.yaml',
 ]);
 
 export function packageName(directory: string): string {
@@ -113,10 +114,6 @@ async function templateFiles(
 export async function createProject(options: ProjectOptions): Promise<string> {
     if (options.language !== 'en' && options.language !== 'de')
         throw new Error('Language must be en or de.');
-    if (options.bilingual && options.language !== 'de')
-        throw new Error(
-            'Use --language de --bilingual for the bilingual starter.',
-        );
     const name = validateName(options.name);
     const target = resolve(options.directory);
     await assertEmptyTarget(target);
@@ -133,6 +130,7 @@ export async function createProject(options: ProjectOptions): Promise<string> {
         layer: string,
         replacements: readonly string[] = [],
         selectedDirectory?: string,
+        excludedFile?: string,
     ): Promise<void> {
         const directory = join(templateRoot, layer);
         const source = selectedDirectory
@@ -142,6 +140,7 @@ export async function createProject(options: ProjectOptions): Promise<string> {
             const file = selectedDirectory
                 ? join(selectedDirectory, entry)
                 : entry;
+            if (file.split('\\').join('/') === excludedFile) continue;
             const destination = file === 'gitignore' ? '.gitignore' : file;
             if (
                 output.has(destination) &&
@@ -173,15 +172,21 @@ export async function createProject(options: ProjectOptions): Promise<string> {
     await addLayer('common');
     await addLayer(options.language);
     if (options.bilingual) {
+        const germanFirst = options.language === 'de';
+        const secondary = germanFirst ? 'en' : 'de';
         await addLayer(
-            'en',
-            ['src/content/pages/page.yaml'],
+            secondary,
+            germanFirst ? ['src/content/pages/page.yaml'] : [],
             'src/content/pages',
+            germanFirst ? undefined : 'src/content/pages/page.yaml',
         );
-        await addLayer('de-en/project', [
+        if (!germanFirst)
+            await addLayer('de-en/project', [], 'src/content/pages/about');
+        await addLayer(`${options.language}-${secondary}/project`, [
             'AGENTS.md',
             'README.md',
             'src/content/site.yaml',
+            'src/content/site.de.yaml',
             'src/pages/[...slug].astro',
         ]);
     }
