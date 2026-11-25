@@ -4,6 +4,17 @@ All notable changes are documented here using Keep a Changelog and Semantic Vers
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-25
+
+### Added
+
+- Generate an English-first bilingual starter with `--language en --bilingual`. English is served at `/`, German at `/de/`, and the language switcher links the paired About pages.
+
+### Changed
+
+- Import starter templates, artwork, and license notices from Sproutsite `0.5.35` and use `sproutsite@~0.5.35` in generated sites.
+- Configure hero and footer background images in `site.yaml` and remove the duplicate hero image from page content.
+
 ## [0.2.0] - 2026-11-23
 
 ### Added
