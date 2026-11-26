@@ -16,7 +16,7 @@ import { parseDocument } from 'yaml';
 import { filesUnder, sha256, verifySnapshot } from './starter-assets.js';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const commit = 'ce1395c73f129ffe16e0736c9127176a89a5ee36';
+const commit = '9216d8970b8f8deb3fb9a41b9f67d76906fe4a38';
 const prefix = 'starters/minimal/';
 const assetRoot = 'src/package/starter-assets/';
 const skill = '.agents/skills/sproutsite-edit-page/SKILL.md';
@@ -102,7 +102,7 @@ try {
                 const starter = JSON.parse(bytes.toString('utf8')) as {
                     dependencies: Record<string, string>;
                 };
-                starter.dependencies.sproutsite = '~0.5.35';
+                starter.dependencies.sproutsite = '~0.5.36';
                 add(
                     output,
                     Buffer.from(JSON.stringify(starter, null, 4) + '\n'),

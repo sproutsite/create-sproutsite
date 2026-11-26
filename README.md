@@ -7,7 +7,7 @@
 
 Create your own Markdown-first website with Sproutsite and Astro. The generator supplies the initial configuration, a small homepage, and editorial guidance. The installed `sproutsite` library provides the default design and components. Sproutsite contains no integrated AI agent or CMS administration interface.
 
-Requires Node.js 24 or later and npm. The starter uses `sproutsite@~0.5.35`, its public `sproutsite/starter-assets` contract and compatible Astro `^7.4.12` and MDX `^8.1.6` peers. The reviewed asset source and hashes are recorded in `templates/minimal/asset-source.json` and `asset-manifest.json`. `.nvmrc` pins Node.js 24.22.2 for generator development.
+Requires Node.js 24 or later and npm. The starter uses `sproutsite@~0.5.36`, its public `sproutsite/starter-assets` contract and compatible Astro `^7.4.12` and MDX `^8.1.6` peers. The reviewed asset source and hashes are recorded in `templates/minimal/asset-source.json` and `asset-manifest.json`. `.nvmrc` pins Node.js 24.22.2 for generator development.
 
 Use the local archive instructions below to try the starter with the local theme from this checkout.
 
@@ -85,7 +85,7 @@ Edit the supplied content rather than building a theme. The starter's README and
 
 The neutral logo, favicon, app icons and sharing image live in `public/branding/`. Replace those files with your own artwork, or change `branding` in the base `src/content/site.yaml`. Use `site.de.yaml` only for intentional German overrides. `logo.showName: true` keeps your chosen website name beside the symbol. The sharing image alternative text is localized. Preserve `public/LICENSE.txt` and `public/NOTICE.txt` when redistributing the supplied artwork; Apache-2.0 adds no visible attribution or product-branding requirement.
 
-The homepage hero and footer use the public images configured in `src/content/site.yaml`. Replace `public/images/hero.jpg` or `public/images/footer.webp`, or change `hero.background-image` or `footer.background-image`. The homepage inherits `hero.classes` and `hero.background-image`. A page can set its own hero background or use `null` to disable it. The starter includes a local stylesheet at `src/styles/backgrounds.css` for the supplied background styles.
+The homepage hero and footer use the public images configured in `src/content/site.yaml`. Replace `public/images/hero.jpg` or `public/images/footer.webp`, or change `hero.background-image` or `footer.background-image`. The homepage inherits `hero.classes` and `hero.background-image`. A page can set its own hero background or use `null` to disable it. The stylesheet at `src/styles/backgrounds.css` positions both images at the bottom center by default. Use `background-position` and `background-position-mobile` under `hero` or `footer` in `site.yaml` to set `center`, `top`, `bottom`, `left`, or `right`.
 
 The German starter serves German at `/`. It retains `.de.md`/`.de.mdx`, `page.de.yaml` and `site.de.yaml`, plus base `page.yaml` and `site.yaml`. Keep the `page.yaml`/`page.de.yaml` metadata synchronized. Website configuration is different: `site.yaml` contains the complete German base, and `site.de.yaml` starts as an empty mapping (`{}`) for optional overrides. Objects inherit individual fields; lists replace inherited lists entirely. A footer text override keeps its inherited links, but a header link override must supply the whole desired list. This does not create an English website or change the locale routes.
 
