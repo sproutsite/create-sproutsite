@@ -4,6 +4,16 @@ All notable changes are documented here using Keep a Changelog and Semantic Vers
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-11-26
+
+### Fixed
+
+- Let `background-position` and `background-position-mobile` override the starter's bottom-center placement for hero and footer images.
+
+### Changed
+
+- Import the starter from Sproutsite `0.5.36` and use `sproutsite@~0.5.36` in generated sites.
+
 ## [0.3.0] - 2026-11-25
 
 ### Added
