@@ -7,7 +7,7 @@
 
 Create your own Markdown-first website with Sproutsite and Astro. The generator supplies the initial configuration, a small homepage, and editorial guidance. The installed `sproutsite` library provides the default design and components. Sproutsite contains no integrated AI agent or CMS administration interface.
 
-Requires Node.js 24 or later and npm. The starter uses `sproutsite@~0.5.36`, its public `sproutsite/starter-assets` contract and compatible Astro `^7.4.12` and MDX `^8.1.6` peers. The reviewed asset source and hashes are recorded in `templates/minimal/asset-source.json` and `asset-manifest.json`. `.nvmrc` pins Node.js 24.22.2 for generator development.
+Requires Node.js 24 or later and npm. The starter uses `sproutsite@~0.5.38`, its public `sproutsite/starter-assets` contract and compatible Astro `^7.4.12` and MDX `^8.1.6` peers. The reviewed asset source and hashes are recorded in `templates/minimal/asset-source.json` and `asset-manifest.json`. `.nvmrc` pins Node.js 24.22.2 for generator development.
 
 Use the local archive instructions below to try the starter with the local theme from this checkout.
 
@@ -100,6 +100,10 @@ npm run preview
 ```
 
 Deploy the entire `dist/` directory. Sproutsite generates assets, a sitemap, manifest, and static error documents; your hosting configuration must select the error documents. No deployment is performed by the generator.
+
+## Enable website search
+
+Set `search.enabled: true` in `src/content/site.yaml` and run `npm run build` to generate `dist/pagefind/`. Open the magnifying glass in `npm run preview` to search in the active language. Rebuild after changing searchable content and deploy the full `dist/` directory. Search starts disabled.
 
 ## Customize the default theme with CSS
 

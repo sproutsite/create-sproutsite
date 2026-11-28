@@ -14,6 +14,7 @@ import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { parseDocument } from 'yaml';
 import {
     readManifest,
     sha256,
@@ -364,13 +365,49 @@ try {
                 );
             }
             npm(['run', 'check'], project);
+            const sitePath = join(project, 'src/content/site.yaml');
+            const site = parseDocument(readFileSync(sitePath, 'utf8'));
+            assert.deepEqual(site.errors, []);
+            assert.equal(site.getIn(['search', 'enabled']), false);
+            const pagefind = join(project, 'dist/pagefind');
+            if (variant === 'en' && mode === '--install') {
+                npm(['run', 'build'], project);
+                const html = readFileSync(
+                    join(project, 'dist/index.html'),
+                    'utf8',
+                );
+                assert.doesNotMatch(
+                    html,
+                    /data-site-search-open|id="ss-site-search"/,
+                );
+                assert.equal(existsSync(pagefind), false);
+            }
+            site.setIn(['search', 'enabled'], true);
+            writeFileSync(sitePath, site.toString());
             for (const base of ['/', '/demo/']) {
                 npm(['run', 'build'], project, false, base);
+                const searchIndex = JSON.parse(
+                    readFileSync(join(pagefind, 'pagefind-entry.json'), 'utf8'),
+                ) as { languages: Record<string, { page_count: number }> };
+                assert.deepEqual(
+                    Object.keys(searchIndex.languages).sort(),
+                    bilingual ? ['de', 'en'] : [language],
+                );
+                for (const entry of Object.values(searchIndex.languages))
+                    assert.ok(entry.page_count > 0);
+                assert.ok(existsSync(join(pagefind, 'pagefind.js')));
+                assert.ok(existsSync(join(pagefind, 'licenses')));
                 const html = readFileSync(
                     join(project, 'dist/index.html'),
                     'utf8',
                 );
                 assert.ok(html.includes(`lang="${language}"`));
+                assert.match(html, /<button\b[^>]*\bdata-site-search-open/);
+                assert.match(html, /<dialog\b[^>]*\bid="ss-site-search"/);
+                assert.ok(
+                    html.includes(`data-module="${base}pagefind/pagefind.js"`),
+                );
+                assert.ok(html.includes(`data-locale="${language}"`));
                 if (bilingual) {
                     const secondary = language === 'de' ? 'en' : 'de';
                     const translatedHome = readFileSync(
@@ -378,6 +415,9 @@ try {
                         'utf8',
                     );
                     assert.ok(translatedHome.includes(`lang="${secondary}"`));
+                    assert.ok(
+                        translatedHome.includes(`data-locale="${secondary}"`),
+                    );
                     assert.ok(
                         translatedHome.includes(
                             secondary === 'en'
