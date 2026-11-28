@@ -134,7 +134,7 @@ node dist/index.js /absolute/path/to/my-website
 Alternatively, run `npm pack` and use the resulting archive without fetching a registry generator:
 
 ```sh
-npm exec --yes --package=/absolute/path/to/create-sproutsite-0.3.1.tgz -- create-sproutsite /absolute/path/to/my-website --language en --yes
+npm exec --yes --package=/absolute/path/to/create-sproutsite-0.4.0.tgz -- create-sproutsite /absolute/path/to/my-website --language en --yes
 ```
 
 The archive includes compiled CLI code, templates and license notices. It excludes tests, build scripts, source code and development dependencies. The generator has no runtime dependencies. Its version is independent of the installed Sproutsite version.

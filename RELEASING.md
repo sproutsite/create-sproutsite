@@ -22,7 +22,7 @@ To retain a local archive for inspection after the checks pass:
 
 ```sh
 npm pack
-tar -tzf create-sproutsite-0.3.1.tgz
+tar -tzf create-sproutsite-0.4.0.tgz
 ```
 
 `npm pack` rebuilds the CLI but does not run the full release checks. The generated archive is ignored by Git. No archive command publishes anything.
@@ -77,8 +77,8 @@ Complete npm's authentication challenge if requested. Do not bypass lifecycle ch
 After successful publication, verify registry metadata and the user entry point from a temporary directory outside this checkout:
 
 ```sh
-npm view create-sproutsite@0.3.1 version dist-tags dist.integrity --json --registry=https://registry.npmjs.org/
-npm create sproutsite@0.3.1 smoke-website -- --language en --bilingual --yes --no-install
+npm view create-sproutsite@0.4.0 version dist-tags dist.integrity --json --registry=https://registry.npmjs.org/
+npm create sproutsite@0.4.0 smoke-website -- --language en --bilingual --yes --no-install
 ```
 
 Only after publication is verified, update README's publication status and local archive guidance to describe the released package. Create or push Git tags only when explicitly requested. Record any failed publication accurately; do not retry blindly if the registry may already contain the intended version.

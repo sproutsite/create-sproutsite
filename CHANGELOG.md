@@ -4,6 +4,16 @@ All notable changes are documented here using Keep a Changelog and Semantic Vers
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-28
+
+### Added
+
+- Ship optional Pagefind search in all four starter variants. Enable it with `search.enabled` in `site.yaml` to add a header search button and generate `dist/pagefind/`. Search follows the active language and supports deployment under a base path.
+
+### Changed
+
+- Import the starter from Sproutsite `0.5.38` and use `sproutsite@~0.5.38` in generated sites.
+
 ## [0.3.1] - 2026-11-26
 
 ### Fixed
